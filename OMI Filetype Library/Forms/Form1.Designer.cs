@@ -45,12 +45,15 @@ namespace OMI_Filetype_Library
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.button9 = new System.Windows.Forms.Button();
             this.button10 = new System.Windows.Forms.Button();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.button11 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.tabPage6.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -63,10 +66,11 @@ namespace OMI_Filetype_Library
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage5);
+            this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Location = new System.Drawing.Point(13, 13);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(321, 109);
+            this.tabControl1.Size = new System.Drawing.Size(431, 163);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -76,7 +80,7 @@ namespace OMI_Filetype_Library
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(313, 83);
+            this.tabPage1.Size = new System.Drawing.Size(423, 137);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Models";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -204,7 +208,7 @@ namespace OMI_Filetype_Library
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(313, 83);
+            this.tabPage5.Size = new System.Drawing.Size(423, 137);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "FourJ UI";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -229,14 +233,35 @@ namespace OMI_Filetype_Library
             this.button10.UseVisualStyleBackColor = true;
             this.button10.Click += new System.EventHandler(this.button10_Click);
             // 
+            // tabPage6
+            // 
+            this.tabPage6.Controls.Add(this.button11);
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
+            this.tabPage6.Name = "tabPage6";
+            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage6.Size = new System.Drawing.Size(423, 137);
+            this.tabPage6.TabIndex = 5;
+            this.tabPage6.Text = "CSMs";
+            this.tabPage6.UseVisualStyleBackColor = true;
+            // 
+            // button11
+            // 
+            this.button11.Location = new System.Drawing.Point(151, 43);
+            this.button11.Name = "button11";
+            this.button11.Size = new System.Drawing.Size(120, 51);
+            this.button11.TabIndex = 3;
+            this.button11.Text = "Convert";
+            this.button11.UseVisualStyleBackColor = true;
+            this.button11.Click += new System.EventHandler(this.button11_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 134);
+            this.ClientSize = new System.Drawing.Size(456, 188);
             this.Controls.Add(this.tabControl1);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(362, 173);
+            this.MaximumSize = new System.Drawing.Size(800, 500);
             this.MinimumSize = new System.Drawing.Size(362, 173);
             this.Name = "Form1";
             this.Text = "ProofOfConcept";
@@ -246,6 +271,7 @@ namespace OMI_Filetype_Library
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
+            this.tabPage6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -268,6 +294,8 @@ namespace OMI_Filetype_Library
         private System.Windows.Forms.Button button10;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TabPage tabPage6;
+        private System.Windows.Forms.Button button11;
     }
 }
 

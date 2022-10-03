@@ -29,6 +29,9 @@ using LanguageWorker.model;
 using MaterialWorker.model;
 using ModelsWorker.model;
 using UIWorker.model;
+using OMI_Filetypes.Classes.Formats;
+using OMI_Filetypes.Classes.Workers.CSMBinaryWorker;
+using Ionic.Zlib;
 #endregion
 
 namespace OMI_Filetype_Library
@@ -40,23 +43,23 @@ namespace OMI_Filetype_Library
             InitializeComponent();
         }
         #region variables
-             //Containers
+        //Containers
         ColorContainer ColorsContainer;
         LanguagesContainer LanguageContainer;
         MaterialContainer Materialscontainer;
         ModelContainer ModelsContainer;
         UIContainer UiContainer;
-             //Parsers
+        //Parsers
         ColorParser cp = new ColorParser();
         LanguagesParser lp = new LanguagesParser();
         MaterialParser mp = new MaterialParser();
         ModelParser _mp = new ModelParser();
         UIParser up = new UIParser();
-              //Builders
+        //Builders
         ColorBuilder cb = new ColorBuilder();
         LanguageBuilder lb = new LanguageBuilder();
-        //MaterialBuilder mb = new MaterialBuilder();
-        //ModelBuilder _mb = new ModelBuilder();
+        MaterialBuilder mb = new MaterialBuilder();
+        ModelBuilder _mb = new ModelBuilder();
         UIBuilder ub = new UIBuilder();
 
         #endregion
@@ -67,7 +70,7 @@ namespace OMI_Filetype_Library
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "Models file|*.bin";
-            if(ofd.ShowDialog() == DialogResult.OK)
+            if (ofd.ShowDialog() == DialogResult.OK)
             {
                 ModelsContainer = _mp.Parse(ofd.FileName);
             }
@@ -119,15 +122,15 @@ namespace OMI_Filetype_Library
 
         #endregion
 
-        #region Opening Files
+        #region Saving Files
 
         private void button2_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Models file|*.bin";
-            if(sfd.ShowDialog() == DialogResult.OK)
+            if (sfd.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("WorkInProgress!");
+                _mb.Build(ModelsContainer, sfd.FileName);
             }
         } // models.bin Files
 
@@ -147,7 +150,7 @@ namespace OMI_Filetype_Library
             sfd.Filter = "Materials file|entityMaterials.bin";
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("WorkInProgress!");
+                mb.Build(Materialscontainer, sfd.FileName);
             }
         } // entityMaterials.bin files
 
@@ -173,5 +176,68 @@ namespace OMI_Filetype_Library
 
         #endregion
 
+        private void button11_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog opf = new OpenFileDialog();
+            opf.Filter = "CSM|*.csm";
+            if (opf.ShowDialog() == DialogResult.OK)
+            {
+                string DataIn = File.ReadAllText(opf.FileName);
+                CSMtoCSMB c2c = new CSMtoCSMB();
+                CSMBFile newfille = c2c.TryParse(DataIn);
+                CSMBBuilder Builder = new CSMBBuilder();
+                //Builder.Build(newfille, opf.FileName + "b");
+                File.WriteAllBytes(opf.FileName + "bc", compress(File.ReadAllBytes(opf.FileName + "b"), 9));
+                File.WriteAllBytes(opf.FileName + "c", compress(File.ReadAllBytes(opf.FileName), 9));
+            }
+        }
+
+        private byte[] compress(byte[] a, int level)
+        {
+            using (var ms = new MemoryStream())
+            {
+                CompressionLevel compressionLevel = CompressionLevel.Default;
+
+                switch (level)
+                {
+                    case 0:
+                        compressionLevel = CompressionLevel.Level0;
+                        break;
+                    case 1:
+                        compressionLevel = CompressionLevel.Level1;
+                        break;
+                    case 2:
+                        compressionLevel = CompressionLevel.Level2;
+                        break;
+                    case 3:
+                        compressionLevel = CompressionLevel.Level3;
+                        break;
+                    case 4:
+                        compressionLevel = CompressionLevel.Level4;
+                        break;
+                    case 5:
+                        compressionLevel = CompressionLevel.Level5;
+                        break;
+                    case 6:
+                        compressionLevel = CompressionLevel.Level6;
+                        break;
+                    case 7:
+                        compressionLevel = CompressionLevel.Level7;
+                        break;
+                    case 8:
+                        compressionLevel = CompressionLevel.Level8;
+                        break;
+                    case 9:
+                        compressionLevel = CompressionLevel.Level9;
+                        break;
+                }
+
+                using (var compresssor = new DeflateStream(ms, CompressionMode.Compress, compressionLevel))
+                {
+                    compresssor.Write(a, 0, a.Length);
+                }
+                return ms.ToArray();
+            }
+        }
     }
 }

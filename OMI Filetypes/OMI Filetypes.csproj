@@ -41,29 +41,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ArraySupport.cs" />
-    <Compile Include="Classes\ColorWorker\ColorBuilder.cs" />
-    <Compile Include="Classes\ColorWorker\ColorParser.cs" />
-    <Compile Include="Classes\ColorWorker\model\ColorComponent.cs" />
-    <Compile Include="Classes\ColorWorker\model\ColorContainer.cs" />
-    <Compile Include="Classes\LanguageWorker\LanguageBuilder.cs" />
-    <Compile Include="Classes\LanguageWorker\LanguagesParser.cs" />
-    <Compile Include="Classes\LanguageWorker\model\IndexEntry.cs" />
-    <Compile Include="Classes\LanguageWorker\model\LanguageEntry.cs" />
-    <Compile Include="Classes\LanguageWorker\model\LanguagesContainer.cs" />
-    <Compile Include="Classes\LanguageWorker\model\MessageEntry.cs" />
-    <Compile Include="Classes\MaterialWorker\MaterialBuilder.cs" />
-    <Compile Include="Classes\MaterialWorker\MaterialParser.cs" />
-    <Compile Include="Classes\MaterialWorker\model\Material.cs" />
-    <Compile Include="Classes\MaterialWorker\model\MaterialContainer.cs" />
-    <Compile Include="Classes\ModelsWorker\ModelParser.cs" />
-    <Compile Include="Classes\ModelsWorker\model\ModelContainer.cs" />
-    <Compile Include="Classes\ModelsWorker\model\ModelPiece.cs" />
-    <Compile Include="Classes\UIWorker\model\UIComponent.cs" />
-    <Compile Include="Classes\UIWorker\model\UIContainer.cs" />
-    <Compile Include="Classes\UIWorker\UIBuilder.cs" />
-    <Compile Include="Classes\UIWorker\UIParser.cs" />
+    <Compile Include="Classes\Formats\CustomSkinModelBinary.cs" />
+    <Compile Include="Classes\Formats\Languages.cs" />
+    <Compile Include="Classes\StreamDataReader.cs" />
+    <Compile Include="Classes\StreamDataWriter.cs" />
+    <Compile Include="Classes\Workers\ArchiveWorker\ARCFileReader.cs" />
+    <Compile Include="Classes\Workers\ArchiveWorker\ARCFileWriter.cs" />
+    <Compile Include="Classes\Formats\Archive.cs" />
+    <Compile Include="Classes\Workers\ColorWorker\COLFileWriter.cs" />
+    <Compile Include="Classes\Workers\ColorWorker\COLFileReader.cs" />
+    <Compile Include="Classes\Formats\Color.cs" />
+    <Compile Include="Classes\Workers\CSMBinaryWorker\CSMBFileWriter.cs" />
+    <Compile Include="Classes\Workers\CSMBinaryWorker\CSMBFileReader.cs" />
+    <Compile Include="Classes\Workers\LanguageWorker\LOCFileReader.cs" />
+    <Compile Include="Classes\Workers\LanguageWorker\LOCFileWriter.cs" />
+    <Compile Include="Classes\Workers\MaterialWorker\MaterialFileWriter.cs" />
+    <Compile Include="Classes\Workers\MaterialWorker\MaterialFileReader.cs" />
+    <Compile Include="Classes\Formats\Material.cs" />
+    <Compile Include="Classes\Workers\ModelsWorker\ModelFileWriter.cs" />
+    <Compile Include="Classes\Workers\ModelsWorker\ModelFileReader.cs" />
+    <Compile Include="Classes\Formats\Model.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

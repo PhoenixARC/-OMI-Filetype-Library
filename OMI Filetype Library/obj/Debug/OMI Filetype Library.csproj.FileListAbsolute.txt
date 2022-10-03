@@ -12,3 +12,18 @@ C:\Users\phoen\source\repos\OMI Filetype Library\OMI Filetype Library\obj\Debug\
 C:\Users\phoen\source\repos\OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.pdb
 C:\Users\phoen\source\repos\OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetypes.dll
 C:\Users\phoen\source\repos\OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetypes.pdb
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetype Library.exe.config
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetype Library.exe
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetype Library.pdb
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\Ionic.Zlib.dll
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetypes.dll
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\bin\Debug\OMI Filetypes.pdb
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.csproj.AssemblyReference.cache
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.csproj.SuggestedBindingRedirects.cache
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI_Filetype_Library.Form1.resources
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI_Filetype_Library.Properties.Resources.resources
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.csproj.GenerateResource.cache
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.csproj.CoreCompileInputs.cache
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.csproj.CopyComplete
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.exe
+C:\Users\phoen\source\repos\##OMI Filetype Library\OMI Filetype Library\obj\Debug\OMI Filetype Library.pdb
