@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/*
+ * StreamDataReader/Writer is the direct product of Miku-666(NessieHax)'s work! check em out! 
+ * https://github.com/NessieHax
+*/
 namespace OMI.utils
 {
     internal class StreamDataWriter
