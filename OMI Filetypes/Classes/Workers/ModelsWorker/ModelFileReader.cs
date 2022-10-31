@@ -5,7 +5,11 @@ using System.Text;
 using System.IO;
 using OMI.Formats.Model;
 using OMI.utils;
-
+/*
+ * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
+ * https://github.com/MattN-L
+*/
+namespa
 namespace OMI.Workers.Model
 {
     internal class ModelFileReader : StreamDataReader

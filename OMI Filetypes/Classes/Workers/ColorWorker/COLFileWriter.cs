@@ -6,7 +6,10 @@ using System.IO;
 using System.Threading.Tasks;
 using OMI.Formats.Color;
 using OMI.utils;
-
+/*
+ * most known Color information is the direct product of May/MattNL's work! check em out! 
+ * https://github.com/MattN-L
+*/
 namespace OMI.Workers.Color
 {
     internal class COLFileWriter : StreamDataWriter

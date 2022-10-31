@@ -5,6 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+
+/*
+ * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
+ * https://github.com/NessieHax
+*/
 namespace OMI.Formats.FUI
 {
     public class FourjUserInterface

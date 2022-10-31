@@ -6,7 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.FUI;
 using OMI.utils;
-
+/*
+ * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
+ * https://github.com/NessieHax
+*/
 namespace OMI.Workers.FUI
 {
     internal class FourjUIReader : StreamDataReader
