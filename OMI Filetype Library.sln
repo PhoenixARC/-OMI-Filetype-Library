@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32002.261
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMI Filetype Library", "OMI Filetype Library\OMI Filetype Library.csproj", "{87B72FF8-8DA3-4E04-8A57-36FB9A835671}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMI Filetypes", "OMI Filetypes\OMI Filetypes.csproj", "{693AEBC1-293D-4DF0-BCAE-26A1099FE7BB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMI Filetype Library", "OMI Filetypes\OMI Filetype Library.csproj", "{693AEBC1-293D-4DF0-BCAE-26A1099FE7BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{87B72FF8-8DA3-4E04-8A57-36FB9A835671}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87B72FF8-8DA3-4E04-8A57-36FB9A835671}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87B72FF8-8DA3-4E04-8A57-36FB9A835671}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87B72FF8-8DA3-4E04-8A57-36FB9A835671}.Release|Any CPU.Build.0 = Release|Any CPU
 		{693AEBC1-293D-4DF0-BCAE-26A1099FE7BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{693AEBC1-293D-4DF0-BCAE-26A1099FE7BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{693AEBC1-293D-4DF0-BCAE-26A1099FE7BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
