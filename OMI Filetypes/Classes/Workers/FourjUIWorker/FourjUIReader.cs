@@ -6,45 +6,50 @@ using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.FUI;
 using OMI.utils;
+using System.Diagnostics;
 /*
- * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
- * https://github.com/NessieHax
+* all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
+* https://github.com/NessieHax
 */
 namespace OMI.Workers.FUI
 {
     internal class FourjUIReader : StreamDataReader
     {
-        public FourjUIReader(bool useLittleEndian) : base(useLittleEndian)
+        public FourjUIReader() : base(true)
         {
         }
 
-        public FourjUserInterface Read(byte[] FileData)
+        public FourjUserInterface Read(byte[] data)
         {
-            FourjUserInterface UserInterfaceContainer = new FourjUserInterface();
-            MemoryStream s = new MemoryStream(FileData);
-            return Read(UserInterfaceContainer, s);
-        }
-
-        public FourjUserInterface Read(string Filepath)
-        {
-            FourjUserInterface UserInterfaceContainer = new FourjUserInterface();
-            if (File.Exists(Filepath))
+            FourjUserInterface UserInterfaceContainer = null;
+            using (var ms = new MemoryStream(data))
             {
-                using (BinaryReader binaryReader = new BinaryReader(File.Open(Filepath, FileMode.Open)))
-                {
-                    Stream baseStream = binaryReader.BaseStream;
-                    UserInterfaceContainer = Read(UserInterfaceContainer, baseStream);
-                }
+                UserInterfaceContainer = Read(ms);
             }
             return UserInterfaceContainer;
         }
 
-        public FourjUserInterface Read(FourjUserInterface UIContainer, Stream s)
+        public FourjUserInterface Read(string filename)
         {
-            DateTime Begin = DateTime.Now;
-            UIContainer.Header.Signature = ReadCharArray(s, (int)0x08);
+            if (File.Exists(filename))
+            {
+                FourjUserInterface UserInterfaceContainer;
+                using (var fs = File.OpenRead(filename))
+                {
+                    UserInterfaceContainer = Read(fs);
+                }
+                return UserInterfaceContainer;
+            }
+            return null;
+        }
+
+        public FourjUserInterface Read(Stream s)
+        {
+            FourjUserInterface UIContainer = new FourjUserInterface();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            UIContainer.Header.Signature = ReadCharArray(s, 0x08);
             UIContainer.Header.ContentSize = ReadInt(s);
-            UIContainer.Header.SwfFileName = ReadCharArray(s, (int)0x40);
+            UIContainer.Header.SwfFileName = ReadString(s, 0x40, Encoding.ASCII);
             UIContainer.Header.fuiTimelineCount = ReadInt(s);
             UIContainer.Header.fuiTimelineEventNameCount = ReadInt(s);
             UIContainer.Header.fuiTimelineActionCount = ReadInt(s);
@@ -255,14 +260,14 @@ namespace OMI.Workers.FUI
                 }
                 UIContainer.Images.Add(img);
             }
-            TimeSpan duration = new TimeSpan(DateTime.Now.Ticks - Begin.Ticks);
+            stopwatch.Stop();
 
-            Console.WriteLine("Completed in: " + duration);
+            Debug.WriteLine("Completed in: " + stopwatch.Elapsed);
             return UIContainer;
         }
         private char[] ReadCharArray(Stream stream, int length)
         {
-            return ReadString(stream, length, Encoding.UTF8).ToCharArray();
+            return ReadString(stream, length, Encoding.ASCII).ToCharArray();
         }
     }
 }

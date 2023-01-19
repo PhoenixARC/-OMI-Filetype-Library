@@ -31,8 +31,6 @@ namespace OMI.Formats.FUI
         public List<UIComponent.fuiBitmap> Bitmaps;
         public List<UIComponent.fuiImage> Images = new List<UIComponent.fuiImage>();
 
-
-
         public FourjUserInterface()
         {
             Header = new UIComponent.fuiHeader();
@@ -58,9 +56,9 @@ namespace OMI.Formats.FUI
 
         public class fuiHeader
         {
-            public char[] Signature = new char[0x08];
+            public char[] Signature = new char[8];
             public int ContentSize;
-            public char[] SwfFileName = new char[0x40];
+            public string SwfFileName;
             public int fuiTimelineCount;
             public int fuiTimelineEventNameCount;
             public int fuiTimelineActionCount;
@@ -91,8 +89,8 @@ namespace OMI.Formats.FUI
         {
             public short ActionType;
             public short Unknown;
-            public char[] StringArg0 = new char[0x40];
-            public char[] StringArg1 = new char[0x40];
+            public string StringArg0;
+            public string StringArg1;
         }
         public class fuiShape
         {

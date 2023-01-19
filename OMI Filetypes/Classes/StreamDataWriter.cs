@@ -57,6 +57,13 @@ namespace OMI.utils
         protected static void WriteString(Stream stream, string s, Encoding encoding)
             => WriteBytes(stream, encoding.GetBytes(s));
 
+        protected static void WriteString(Stream stream, string s, int maxCapacity, Encoding encoding)
+        {
+            byte[] buffer = new byte[maxCapacity];
+            encoding.GetBytes(s, 0, maxCapacity, buffer, 0);
+            WriteBytes(stream, buffer);
+        }
+
         protected static void WriteBytes(Stream stream, byte[] bytes) => WriteBytes(stream, bytes, bytes.Length);
         protected static void WriteBytes(Stream stream, byte[] bytes, int count)
         {
