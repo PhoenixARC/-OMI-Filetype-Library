@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.FUI;
+using OMI.Formats.FUI.Component;
 using OMI.utils;
 /*
  * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
@@ -22,7 +23,7 @@ namespace OMI.Workers.FUI
 
         public void Write(Stream s)
         {
-            WriteBytes(s, Encoding.ASCII.GetBytes(_UIContainer.Header.Signature), 8);
+            WriteLong(s, _UIContainer.Header.Signature);
             WriteInt(s, _UIContainer.Header.ContentSize);
             WriteString(s, _UIContainer.Header.SwfFileName, 0x40, Encoding.ASCII);
             WriteInt(s, _UIContainer.Timelines.Count);
@@ -45,7 +46,7 @@ namespace OMI.Workers.FUI
             WriteFloat(s, _UIContainer.Header.frameSize.MinY);
             WriteFloat(s, _UIContainer.Header.frameSize.MaxY);
 
-            foreach (UIComponent.fuiTimeline tl in _UIContainer.Timelines)
+            foreach (fuiTimeline tl in _UIContainer.Timelines)
             {
                 WriteInt(s, tl.SymbolIndex);
                 WriteShort(s, tl.FrameIndex);
@@ -57,14 +58,14 @@ namespace OMI.Workers.FUI
                 WriteFloat(s, tl.Rectangle.MinY);
                 WriteFloat(s, tl.Rectangle.MaxY);
             }
-            foreach (UIComponent.fuiTimelineAction tl in _UIContainer.TimelineActions)
+            foreach (fuiTimelineAction tl in _UIContainer.TimelineActions)
             {
                 WriteShort(s, tl.ActionType);
                 WriteShort(s, tl.Unknown);
                 WriteString(s, tl.StringArg0, 0x40, Encoding.ASCII);
                 WriteString(s, tl.StringArg1, 0x40, Encoding.ASCII);
             }
-            foreach (UIComponent.fuiShape tl in _UIContainer.Shapes)
+            foreach (fuiShape tl in _UIContainer.Shapes)
             {
                 WriteInt(s, tl.Unknown);
                 WriteInt(s, tl.ShapeComponentIndex);
@@ -74,7 +75,7 @@ namespace OMI.Workers.FUI
                 WriteFloat(s, tl.Rectangle.MinY);
                 WriteFloat(s, tl.Rectangle.MaxY);
             }
-            foreach (UIComponent.fuiShapeComponent tl in _UIContainer.ShapeComponents)
+            foreach (fuiShapeComponent tl in _UIContainer.ShapeComponents)
             {
                 WriteInt(s, tl.FillInfo.Type);
                 WriteByte(s, tl.FillInfo.Color.R);
@@ -91,18 +92,18 @@ namespace OMI.Workers.FUI
                 WriteInt(s, tl.VertIndex);
                 WriteInt(s, tl.VertCount);
             }
-            foreach (UIComponent.fuiVert tl in _UIContainer.Verts)
+            foreach (fuiVert tl in _UIContainer.Verts)
             {
                 WriteFloat(s, tl.X);
                 WriteFloat(s, tl.Y);
             }
-            foreach (UIComponent.fuiTimelineFrame tl in _UIContainer.TimelineFrames)
+            foreach (fuiTimelineFrame tl in _UIContainer.TimelineFrames)
             {
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.FrameName), 0x40);
                 WriteInt(s, tl.EventIndex);
                 WriteInt(s, tl.EventCount);
             }
-            foreach (UIComponent.fuiTimelineEvent tl in _UIContainer.TimelineEvents)
+            foreach (fuiTimelineEvent tl in _UIContainer.TimelineEvents)
             {
                 WriteShort(s, tl.EventType);
                 WriteShort(s, tl.ObjectType);
@@ -130,17 +131,17 @@ namespace OMI.Workers.FUI
                 WriteByte(s, tl.Color.B);
                 WriteByte(s, tl.Color.A);
             }
-            foreach (UIComponent.fuiTimelineEventName tl in _UIContainer.TimelineEventNames)
+            foreach (fuiTimelineEventName tl in _UIContainer.TimelineEventNames)
             {
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.EventName), 0x40);
             }
-            foreach (UIComponent.fuiReference tl in _UIContainer.References)
+            foreach (fuiReference tl in _UIContainer.References)
             {
                 WriteInt(s, tl.SymbolIndex);
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.Name), 0x40);
                 WriteInt(s, tl.Index);
             }
-            foreach (UIComponent.fuiEdittext tl in _UIContainer.Edittexts)
+            foreach (fuiEdittext tl in _UIContainer.Edittexts)
             {
                 WriteInt(s, tl.Unknown0);
                 WriteFloat(s, tl.Rectangle.MinX);
@@ -161,7 +162,7 @@ namespace OMI.Workers.FUI
                 WriteInt(s, tl.Unknown7);
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.htmltextformat), 0x100);
             }
-            foreach (UIComponent.fuiFontName tl in _UIContainer.FontNames)
+            foreach (fuiFontName tl in _UIContainer.FontNames)
             {
                 WriteInt(s, tl.ID);
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.FontName));
@@ -174,17 +175,17 @@ namespace OMI.Workers.FUI
                 WriteInt(s, tl.Unknown6);
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.Unknown7));
             }
-            foreach (UIComponent.fuiSymbol tl in _UIContainer.Symbols)
+            foreach (fuiSymbol tl in _UIContainer.Symbols)
             {
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.SymbolName), 0x40);
                 WriteInt(s, tl.ObjectType);
                 WriteInt(s, tl.Index);
             }
-            foreach (UIComponent.fuiImportAsset tl in _UIContainer.ImportAssets)
+            foreach (fuiImportAsset tl in _UIContainer.ImportAssets)
             {
                 WriteBytes(s, Encoding.ASCII.GetBytes(tl.Name));
             }
-            foreach (UIComponent.fuiBitmap tl in _UIContainer.Bitmaps)
+            foreach (fuiBitmap tl in _UIContainer.Bitmaps)
             {
                 WriteInt(s, tl.Unknown0);
                 WriteInt(s, tl.ImageFormat);
@@ -195,7 +196,7 @@ namespace OMI.Workers.FUI
                 WriteInt(s, tl.ZlibDataOffset);
                 WriteInt(s, tl.Unknown1);
             }
-            foreach (UIComponent.fuiImage img in _UIContainer.Images)
+            foreach (fuiImage img in _UIContainer.Images)
             {
                 WriteBytes(s, img.data);
             }

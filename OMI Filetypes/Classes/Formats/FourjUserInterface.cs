@@ -14,49 +14,54 @@ namespace OMI.Formats.FUI
 {
     public class FourjUserInterface
     {
-        public UIComponent.fuiHeader Header;
-        public List<UIComponent.fuiTimeline> Timelines;
-        public List<UIComponent.fuiTimelineAction> TimelineActions;
-        public List<UIComponent.fuiShape> Shapes;
-        public List<UIComponent.fuiShapeComponent> ShapeComponents;
-        public List<UIComponent.fuiVert> Verts;
-        public List<UIComponent.fuiTimelineFrame> TimelineFrames;
-        public List<UIComponent.fuiTimelineEvent> TimelineEvents;
-        public List<UIComponent.fuiTimelineEventName> TimelineEventNames;
-        public List<UIComponent.fuiReference> References;
-        public List<UIComponent.fuiEdittext> Edittexts;
-        public List<UIComponent.fuiFontName> FontNames;
-        public List<UIComponent.fuiSymbol> Symbols;
-        public List<UIComponent.fuiImportAsset> ImportAssets;
-        public List<UIComponent.fuiBitmap> Bitmaps;
-        public List<UIComponent.fuiImage> Images = new List<UIComponent.fuiImage>();
+        public Component.fuiHeader Header;
+        public List<Component.fuiTimeline> Timelines;
+        public List<Component.fuiTimelineAction> TimelineActions;
+        public List<Component.fuiShape> Shapes;
+        public List<Component.fuiShapeComponent> ShapeComponents;
+        public List<Component.fuiVert> Verts;
+        public List<Component.fuiTimelineFrame> TimelineFrames;
+        public List<Component.fuiTimelineEvent> TimelineEvents;
+        public List<Component.fuiTimelineEventName> TimelineEventNames;
+        public List<Component.fuiReference> References;
+        public List<Component.fuiEdittext> Edittexts;
+        public List<Component.fuiFontName> FontNames;
+        public List<Component.fuiSymbol> Symbols;
+        public List<Component.fuiImportAsset> ImportAssets;
+        public List<Component.fuiBitmap> Bitmaps;
+        public List<Component.fuiImage> Images = new List<Component.fuiImage>();
 
         public FourjUserInterface()
         {
-            Header = new UIComponent.fuiHeader();
-            Timelines = new List<UIComponent.fuiTimeline>();
-            TimelineActions = new List<UIComponent.fuiTimelineAction>();
-            Shapes = new List<UIComponent.fuiShape>();
-            ShapeComponents = new List<UIComponent.fuiShapeComponent>();
-            Verts = new List<UIComponent.fuiVert>();
-            TimelineFrames = new List<UIComponent.fuiTimelineFrame>();
-            TimelineEvents = new List<UIComponent.fuiTimelineEvent>();
-            TimelineEventNames = new List<UIComponent.fuiTimelineEventName>();
-            References = new List<UIComponent.fuiReference>();
-            Edittexts = new List<UIComponent.fuiEdittext>();
-            FontNames = new List<UIComponent.fuiFontName>();
-            Symbols = new List<UIComponent.fuiSymbol>();
-            ImportAssets = new List<UIComponent.fuiImportAsset>();
-            Bitmaps = new List<UIComponent.fuiBitmap>();
+            Header = new Component.fuiHeader();
+            Timelines = new List<Component.fuiTimeline>();
+            TimelineActions = new List<Component.fuiTimelineAction>();
+            Shapes = new List<Component.fuiShape>();
+            ShapeComponents = new List<Component.fuiShapeComponent>();
+            Verts = new List<Component.fuiVert>();
+            TimelineFrames = new List<Component.fuiTimelineFrame>();
+            TimelineEvents = new List<Component.fuiTimelineEvent>();
+            TimelineEventNames = new List<Component.fuiTimelineEventName>();
+            References = new List<Component.fuiReference>();
+            Edittexts = new List<Component.fuiEdittext>();
+            FontNames = new List<Component.fuiFontName>();
+            Symbols = new List<Component.fuiSymbol>();
+            ImportAssets = new List<Component.fuiImportAsset>();
+            Bitmaps = new List<Component.fuiBitmap>();
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Header: {0}", Header);
         }
     }
-    public class UIComponent
+    namespace Component
     {
         #region Base FUI Structures
 
         public class fuiHeader
         {
-            public char[] Signature = new char[8];
+            public long Signature;
             public int ContentSize;
             public string SwfFileName;
             public int fuiTimelineCount;
@@ -75,6 +80,15 @@ namespace OMI.Formats.FUI
             public int fuiFontNameCount;
             public int fuiImportAssetCount;
             public fuiRect frameSize = new fuiRect();
+
+            public override string ToString()
+            {
+                return $"Signature: 0x{Signature.ToString("X16")}\n" +
+                    $"Version: {Signature >> 56 & 0xff}\n" +
+                    $"Content Size: {ContentSize}\n" +
+                    $"Frame Size: {frameSize}";
+            }
+
         }
         public class fuiTimeline
         {
@@ -85,6 +99,7 @@ namespace OMI.Formats.FUI
             public short ActionCount;
             public fuiRect Rectangle = new fuiRect();
         }
+
         public class fuiTimelineAction
         {
             public short ActionType;
@@ -92,6 +107,7 @@ namespace OMI.Formats.FUI
             public string StringArg0;
             public string StringArg1;
         }
+
         public class fuiShape
         {
             public int Unknown;
@@ -99,23 +115,28 @@ namespace OMI.Formats.FUI
             public int ShapeComponentCount;
             public fuiRect Rectangle = new fuiRect();
         }
+
         public class fuiShapeComponent
         {
             public fuiFillStyle FillInfo = new fuiFillStyle();
             public int VertIndex;
             public int VertCount;
         }
+
         public class fuiVert
         {
             public float X;
             public float Y;
         }
+
         public class fuiTimelineFrame
         {
             public char[] FrameName = new char[0x40];
             public int EventIndex;
             public int EventCount;
         }
+
+
         public class fuiTimelineEvent
         {
             public short EventType;
@@ -198,14 +219,38 @@ namespace OMI.Formats.FUI
             public float MinY;
             public float MaxX;
             public float MaxY;
+
+            public override string ToString()
+            {
+                return string.Format("{0}x{1}", MaxX-MinX, MaxY-MinY);
+            }
         }
+        
         public class fuiRGBA
         {
             public byte R;
             public byte G;
             public byte B;
             public byte A;
+            public uint Color {
+                get => (uint)(R << 24 | G << 16 | B << 8 | A);
+                set
+                {
+                    if (Color == value) return;
+                    R = (byte)(Color >> 24 & 0xff);
+                    G = (byte)(Color >> 16 & 0xff);
+                    B = (byte)(Color >> 08 & 0xff);
+                    A = (byte)(Color >> 00 & 0xff);
+                }
+            }
+
+            public override string ToString()
+            {
+                return string.Format("#{0}", Color);
+            }
+
         }
+
         public class fuiMatrix
         {
             public float ScaleX;
@@ -215,6 +260,7 @@ namespace OMI.Formats.FUI
             public float TranslationX;
             public float TranslationY;
         }
+        
         public class fuiColorTransform
         {
             public float RedMultTerm;
@@ -226,6 +272,7 @@ namespace OMI.Formats.FUI
             public float BlueAddTerm;
             public float AlphaAddTerm;
         }
+        
         public class fuiFillStyle
         {
             public int Type;
@@ -233,10 +280,18 @@ namespace OMI.Formats.FUI
             public int BitmapIndex;
             public fuiMatrix Matrix = new fuiMatrix();
         }
-        public class fuiObject_eFuiObjectType
+        
+        public enum fuiObject_eFuiObjectType
         {
-            public int fuiObjectType;
+            STAGE = 0,
+            SHAPE = 1,
+            TIMELINE = 2,
+            BITMAP = 3,
+            REFERENCE = 4,
+            EDITTEXT = 5,
+            CODEGENRECT = 6,
         }
+        
         public class fuiImage
         {
             public byte[] data;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.FUI;
+using OMI.Formats.FUI.Component;
 using OMI.utils;
 using System.Diagnostics;
 /*
@@ -13,7 +14,7 @@ using System.Diagnostics;
 */
 namespace OMI.Workers.FUI
 {
-    internal class FourjUIReader : StreamDataReader
+    public class FourjUIReader : StreamDataReader
     {
         public FourjUIReader() : base(true)
         {
@@ -27,7 +28,7 @@ namespace OMI.Workers.FUI
                 UserInterfaceContainer = Read(ms);
             }
             return UserInterfaceContainer;
-        }
+        }   
 
         public FourjUserInterface Read(string filename)
         {
@@ -47,7 +48,8 @@ namespace OMI.Workers.FUI
         {
             FourjUserInterface UIContainer = new FourjUserInterface();
             Stopwatch stopwatch = Stopwatch.StartNew();
-            UIContainer.Header.Signature = ReadCharArray(s, 0x08);
+            // hacky work around......
+            UIContainer.Header.Signature = BitConverter.ToInt64(BitConverter.GetBytes(ReadLong(s)).Reverse().ToArray(), 0);
             UIContainer.Header.ContentSize = ReadInt(s);
             UIContainer.Header.SwfFileName = ReadString(s, 0x40, Encoding.ASCII);
             UIContainer.Header.fuiTimelineCount = ReadInt(s);
@@ -71,7 +73,7 @@ namespace OMI.Workers.FUI
             UIContainer.Header.frameSize.MaxY = ReadFloat(s);
             for (int i = 0; i < UIContainer.Header.fuiTimelineCount; i++)
             {
-                UIComponent.fuiTimeline tline = new UIComponent.fuiTimeline();
+                fuiTimeline tline = new fuiTimeline();
                 tline.SymbolIndex = ReadInt(s);
                 tline.FrameIndex = ReadShort(s);
                 tline.FrameCount = ReadShort(s);
@@ -85,16 +87,16 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiTimelineActionCount; i++)
             {
-                UIComponent.fuiTimelineAction tline = new UIComponent.fuiTimelineAction();
+                fuiTimelineAction tline = new fuiTimelineAction();
                 tline.ActionType = ReadShort(s);
                 tline.Unknown = ReadShort(s);
-                tline.StringArg0 = ReadCharArray(s, (int)0x40);
-                tline.StringArg1 = ReadCharArray(s, (int)0x40);
+                tline.StringArg0 = ReadString(s, 0x40, Encoding.ASCII);
+                tline.StringArg1 = ReadString(s, 0x40, Encoding.ASCII);
                 UIContainer.TimelineActions.Add(tline);
             }
             for (int i = 0; i < UIContainer.Header.fuiShapeCount; i++)
             {
-                UIComponent.fuiShape tline = new UIComponent.fuiShape();
+                fuiShape tline = new fuiShape();
                 tline.Unknown = ReadInt(s);
                 tline.ShapeComponentIndex = ReadInt(s);
                 tline.ShapeComponentCount = ReadInt(s);
@@ -106,7 +108,7 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiShapeComponentCount; i++)
             {
-                UIComponent.fuiShapeComponent tline = new UIComponent.fuiShapeComponent();
+                fuiShapeComponent tline = new fuiShapeComponent();
                 tline.FillInfo.Type = ReadInt(s);
                 tline.FillInfo.Color.R = ReadBytes(s, 1)[0];
                 tline.FillInfo.Color.G = ReadBytes(s, 1)[0];
@@ -125,14 +127,14 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiVertCount; i++)
             {
-                UIComponent.fuiVert tline = new UIComponent.fuiVert();
+                fuiVert tline = new fuiVert();
                 tline.X = ReadFloat(s);
                 tline.Y = ReadFloat(s);
                 UIContainer.Verts.Add(tline);
             }
             for (int i = 0; i < UIContainer.Header.fuiTimelineFrameCount; i++)
             {
-                UIComponent.fuiTimelineFrame tline = new UIComponent.fuiTimelineFrame();
+                fuiTimelineFrame tline = new fuiTimelineFrame();
                 tline.FrameName = ReadCharArray(s, (int)0x40);
                 tline.EventIndex = ReadInt(s);
                 tline.EventCount = ReadInt(s);
@@ -140,7 +142,7 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiTimelineEventCount; i++)
             {
-                UIComponent.fuiTimelineEvent tline = new UIComponent.fuiTimelineEvent();
+                fuiTimelineEvent tline = new fuiTimelineEvent();
                 tline.EventType = ReadShort(s);
                 tline.ObjectType = ReadShort(s);
                 tline.Unknown0 = ReadShort(s);
@@ -169,13 +171,13 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiTimelineEventNameCount; i++)
             {
-                UIComponent.fuiTimelineEventName tline = new UIComponent.fuiTimelineEventName();
+                fuiTimelineEventName tline = new fuiTimelineEventName();
                 tline.EventName = ReadCharArray(s, (int)0x40);
                 UIContainer.TimelineEventNames.Add(tline);
             }
             for (int i = 0; i < UIContainer.Header.fuiReferenceCount; i++)
             {
-                UIComponent.fuiReference tline = new UIComponent.fuiReference();
+                fuiReference tline = new fuiReference();
                 tline.SymbolIndex = ReadInt(s);
                 tline.Name = ReadCharArray(s, (int)0x40);
                 tline.Index = ReadInt(s);
@@ -183,7 +185,7 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiEdittextCount; i++)
             {
-                UIComponent.fuiEdittext tline = new UIComponent.fuiEdittext();
+                fuiEdittext tline = new fuiEdittext();
                 tline.Unknown0 = ReadInt(s);
                 tline.Rectangle.MinX = ReadFloat(s);
                 tline.Rectangle.MaxX = ReadFloat(s);
@@ -206,7 +208,7 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiFontNameCount; i++)
             {
-                UIComponent.fuiFontName tline = new UIComponent.fuiFontName();
+                fuiFontName tline = new fuiFontName();
                 tline.ID = ReadInt(s);
                 tline.FontName = ReadCharArray(s, (int)0x40);
                 tline.Unknown0 = ReadInt(s);
@@ -221,7 +223,7 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiSymbolCount; i++)
             {
-                UIComponent.fuiSymbol tline = new UIComponent.fuiSymbol();
+                fuiSymbol tline = new fuiSymbol();
                 tline.SymbolName = ReadCharArray(s, (int)0x40);
                 tline.ObjectType = ReadInt(s);
                 tline.Index = ReadInt(s);
@@ -229,13 +231,13 @@ namespace OMI.Workers.FUI
             }
             for (int i = 0; i < UIContainer.Header.fuiImportAssetCount; i++)
             {
-                UIComponent.fuiImportAsset tline = new UIComponent.fuiImportAsset();
+                fuiImportAsset tline = new fuiImportAsset();
                 tline.Name = ReadCharArray(s, (int)0x40);
                 UIContainer.ImportAssets.Add(tline);
             }
             for (int i = 0; i < UIContainer.Header.fuiBitmapCount; i++)
             {
-                UIComponent.fuiBitmap tline = new UIComponent.fuiBitmap();
+                fuiBitmap tline = new fuiBitmap();
                 tline.Unknown0 = ReadInt(s);
                 tline.ImageFormat = ReadInt(s);
                 tline.Width = ReadInt(s);
@@ -246,9 +248,9 @@ namespace OMI.Workers.FUI
                 tline.Unknown1 = ReadInt(s);
                 UIContainer.Bitmaps.Add(tline);
             }
-            foreach (UIComponent.fuiBitmap bitmap in UIContainer.Bitmaps)
+            foreach (fuiBitmap bitmap in UIContainer.Bitmaps)
             {
-                UIComponent.fuiImage img = new UIComponent.fuiImage();
+                fuiImage img = new fuiImage();
                 img.data = ReadBytes(s, bitmap.Size);
                 if (bitmap.ImageFormat == 1) // PNG File
                 {
@@ -265,6 +267,7 @@ namespace OMI.Workers.FUI
             Debug.WriteLine("Completed in: " + stopwatch.Elapsed);
             return UIContainer;
         }
+
         private char[] ReadCharArray(Stream stream, int length)
         {
             return ReadString(stream, length, Encoding.ASCII).ToCharArray();
