@@ -12,7 +12,6 @@ namespace OMI.Formats.CSMB
         public Dictionary<string, CSMPart> Parts = new Dictionary<string, CSMPart>();
         public Dictionary<PartOffset, float> Offsets = new Dictionary<PartOffset, float>();
 
-
         public CSMBFile()
         {
 

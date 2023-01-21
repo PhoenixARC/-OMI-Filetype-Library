@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,6 +47,7 @@
     <Compile Include="Classes\Formats\Languages.cs" />
     <Compile Include="Classes\StreamDataReader.cs" />
     <Compile Include="Classes\StreamDataWriter.cs" />
+    <Compile Include="Classes\StreamUtil.cs" />
     <Compile Include="Classes\Workers\ArchiveWorker\ARCFileReader.cs" />
     <Compile Include="Classes\Workers\ArchiveWorker\ARCFileWriter.cs" />
     <Compile Include="Classes\Formats\Archive.cs" />

@@ -9,18 +9,21 @@ using OMI.utils;
  * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
  * https://github.com/MattN-L
 */
-namespa
+
 namespace OMI.Workers.Model
 {
     internal class ModelFileWriter : StreamDataWriter
     {
+        //! TODO: accept version in the constructor
+        private const int fileVersion = 1;
 
         public ModelFileWriter(bool useLittleEndian) : base(useLittleEndian)
         {
         }
+
         public void Build(ModelContainer Mc, Stream s)
         {
-            WriteInt(s, 1);
+            WriteInt(s, fileVersion);
             WriteInt(s, Mc.models.Count);
 
             foreach (KeyValuePair<string, ModelPiece> Model in Mc.models)
@@ -42,18 +45,18 @@ namespace OMI.Workers.Model
                     WriteFloat(s, Part.Value.RotationY);
                     WriteFloat(s, Part.Value.RotationZ);
                     WriteInt(s, Part.Value.Boxes.Count);
-                    foreach (KeyValuePair<string, ModelBox> box in Part.Value.Boxes)
+                    foreach (var box in Part.Value.Boxes.Values)
                     {
-                        WriteFloat(s, box.Value.PositionX);
-                        WriteFloat(s, box.Value.PositionY);
-                        WriteFloat(s, box.Value.PositionZ);
-                        WriteInt(s, box.Value.Length);
-                        WriteInt(s, box.Value.Height);
-                        WriteInt(s, box.Value.Width);
-                        WriteFloat(s, box.Value.UvX);
-                        WriteFloat(s, box.Value.UvY);
-                        WriteFloat(s, box.Value.Scale);
-                        WriteBool(s, box.Value.Mirror);
+                        WriteFloat(s, box.PositionX);
+                        WriteFloat(s, box.PositionY);
+                        WriteFloat(s, box.PositionZ);
+                        WriteInt(s, box.Length);
+                        WriteInt(s, box.Height);
+                        WriteInt(s, box.Width);
+                        WriteFloat(s, box.UvX);
+                        WriteFloat(s, box.UvY);
+                        WriteFloat(s, box.Scale);
+                        WriteBool(s, box.Mirror);
 
                     }
                 }

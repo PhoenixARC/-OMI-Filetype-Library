@@ -10,7 +10,6 @@ using OMI.utils;
  * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
  * https://github.com/MattN-L
 */
-namespa
 namespace OMI.Workers.Material
 {
     internal class MaterialFileWriter : StreamDataWriter
@@ -20,7 +19,6 @@ namespace OMI.Workers.Material
         }
         public void Build(MaterialContainer Mc, string FilePath, Stream s)
         {
-            int OSet = 0; 
             WriteInt(s, Mc.Version);
             WriteInt(s, Mc.materials.Count);
             foreach (OMI.Formats.Material.Material mat in Mc.materials)

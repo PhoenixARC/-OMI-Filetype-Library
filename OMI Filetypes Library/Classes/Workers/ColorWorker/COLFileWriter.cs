@@ -25,31 +25,18 @@ namespace OMI.Workers.Color
 
             WriteInt(stream, _container.ColorVersion);
             WriteInt(stream, _container.Colors.Count);
-            foreach(ColorComponent.Color col in _container.Colors)
+            foreach(ColorContainer.Color col in _container.Colors)
             {
                 WriteString(stream, col.Name);
-                WriteBytes(stream, new[] { col.SplitterByte});
-                WriteBytes(stream, new[] { (byte)(col.ColorPallette.R) });
-                WriteBytes(stream, new[] { (byte)(col.ColorPallette.G) });
-                WriteBytes(stream, new[] { (byte)(col.ColorPallette.B) });
+                WriteInt(stream, col.ColorPallette.ToArgb());
             }
             WriteInt(stream, _container.WaterColors.Count);
-            foreach (ColorComponent.WaterColor col in _container.WaterColors)
+            foreach (ColorContainer.WaterColor col in _container.WaterColors)
             {
                 WriteString(stream, col.Name);
-                WriteBytes(stream, new[] { col.SplitterByte });
-
-                WriteBytes(stream, new[] { (byte)(col.surfaceColor.R) });
-                WriteBytes(stream, new[] { (byte)(col.surfaceColor.G) });
-                WriteBytes(stream, new[] { (byte)(col.surfaceColor.B) });
-                WriteBytes(stream, new[] { (byte)0x00 });
-                WriteBytes(stream, new[] { (byte)(col.underwaterColor.R) });
-                WriteBytes(stream, new[] { (byte)(col.underwaterColor.G) });
-                WriteBytes(stream, new[] { (byte)(col.underwaterColor.B) });
-                WriteBytes(stream, new[] { (byte)0x00 });
-                WriteBytes(stream, new[] { (byte)(col.fogColor.R) });
-                WriteBytes(stream, new[] { (byte)(col.fogColor.G) });
-                WriteBytes(stream, new[] { (byte)(col.fogColor.B) });
+                WriteInt(stream, col.SurfaceColor.ToArgb());
+                WriteInt(stream, col.UnderwaterColor.ToArgb());
+                WriteInt(stream, col.FogColor.ToArgb());
             }
         }
 
@@ -65,7 +52,7 @@ namespace OMI.Workers.Color
 
             sw.WriteLine("\t\"Version\": \"" + Cc.ColorVersion.ToString() + "\",");
             sw.WriteLine("\t\"Colors\": [{");
-            foreach (ColorComponent.Color col in Cc.Colors)
+            foreach (ColorContainer.Color col in Cc.Colors)
             {
                 sw.Write("\t\t\"" + col.Name + "\": [{");
                 sw.Write("\n\t\t\t\"SeperatorByte\": \"0x");
@@ -83,23 +70,23 @@ namespace OMI.Workers.Color
             sw.WriteLine("\t}],");
             OutputBytes.AddRange(BitConverter.GetBytes(Cc.WaterColors.Count).Reverse().ToArray());
             sw.WriteLine("\t\"WaterColors\": [{");
-            foreach (ColorComponent.WaterColor col in Cc.WaterColors)
+            foreach (ColorContainer.WaterColor col in Cc.WaterColors)
             {
                 sw.Write("\t\t\""+col.Name+"\": [{");
                 sw.Write("\n\t\t\t\"SeperatorByte\": \"0x");
                 sw.Write(BitConverter.ToString(new byte[] { col.SplitterByte }));
                 sw.Write("\",\n\t\t\t\"surfaceColor\": \"#");
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.surfaceColor.R) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.surfaceColor.G) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.surfaceColor.B) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.SurfaceColor.R) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.SurfaceColor.G) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.SurfaceColor.B) }));
                 sw.Write("\",\n\t\t\t\"underwaterColor\": \"#");
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.underwaterColor.R) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.underwaterColor.G) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.underwaterColor.B) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.UnderwaterColor.R) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.UnderwaterColor.G) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.UnderwaterColor.B) }));
                 sw.Write("\",\n\t\t\t\"fogColor\": \"#");
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.fogColor.R) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.fogColor.G) }));
-                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.fogColor.B) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.FogColor.R) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.FogColor.G) }));
+                sw.Write(BitConverter.ToString(new byte[] { (byte)(col.FogColor.B) }));
                 sw.Write("\"\n\t\t}]");
                 if (col == Cc.WaterColors[Cc.WaterColors.Count - 1])
                     sw.Write("\n");
