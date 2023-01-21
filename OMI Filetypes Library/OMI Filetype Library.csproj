@@ -42,7 +42,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Formats\CustomSkinModelBinary.cs" />
     <Compile Include="Classes\Formats\FourjUserInterface.cs" />
     <Compile Include="Classes\Formats\Languages.cs" />
     <Compile Include="Classes\StreamDataReader.cs" />
@@ -54,8 +53,6 @@
     <Compile Include="Classes\Workers\ColorWorker\COLFileWriter.cs" />
     <Compile Include="Classes\Workers\ColorWorker\COLFileReader.cs" />
     <Compile Include="Classes\Formats\Color.cs" />
-    <Compile Include="Classes\Workers\CSMBinaryWorker\CSMBFileWriter.cs" />
-    <Compile Include="Classes\Workers\CSMBinaryWorker\CSMBFileReader.cs" />
     <Compile Include="Classes\Workers\FourjUIWorker\FourjUIReader.cs" />
     <Compile Include="Classes\Workers\FourjUIWorker\FourjUIWriter.cs" />
     <Compile Include="Classes\Workers\LanguageWorker\LOCFileReader.cs" />
