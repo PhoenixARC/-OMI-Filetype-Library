@@ -41,23 +41,23 @@ namespace OMI.Workers.Model
                 foreach (KeyValuePair<string, Formats.Model.Model> model in container.models)
                 {
                     WriteString(writer, model.Key);
-                    writer.Write(model.Value.TextureHeight);
-                    writer.Write(model.Value.TextureWidth);
+                    writer.Write(model.Value.TextureSize.Width);
+                    writer.Write(model.Value.TextureSize.Height);
                     writer.Write(model.Value.Parts.Count);
-                    foreach (KeyValuePair<string, ModelPart> part in model.Value.Parts)
+                    foreach (ModelPart part in model.Value.Parts.Values)
                     {
-                        WriteString(writer, part.Key);
-                        writer.Write(part.Value.TranslationX);
-                        writer.Write(part.Value.TranslationY);
-                        writer.Write(part.Value.TranslationZ);
-                        writer.Write(part.Value.UnknownFloat);
-                        writer.Write(part.Value.TextureOffsetX);
-                        writer.Write(part.Value.TextureOffsetY);
-                        writer.Write(part.Value.RotationX);
-                        writer.Write(part.Value.RotationY);
-                        writer.Write(part.Value.RotationZ);
-                        writer.Write(part.Value.Boxes.Count);
-                        foreach (var box in part.Value.Boxes)
+                        WriteString(writer, part.Name);
+                        writer.Write(part.TranslationX);
+                        writer.Write(part.TranslationY);
+                        writer.Write(part.TranslationZ);
+                        writer.Write(part.UnknownFloat);
+                        writer.Write(part.TextureOffsetX);
+                        writer.Write(part.TextureOffsetY);
+                        writer.Write(part.RotationX);
+                        writer.Write(part.RotationY);
+                        writer.Write(part.RotationZ);
+                        writer.Write(part.Boxes.Count);
+                        foreach (var box in part.Boxes)
                         {
                             writer.Write(box.PositionX);
                             writer.Write(box.PositionY);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,13 +18,13 @@ namespace OMI.Formats.Model
     public class Model
     {
         public string Name;
-        public int TextureWidth;
-        public int TextureHeight;
+        public Size TextureSize;
         public Dictionary<string, ModelPart> Parts = new Dictionary<string, ModelPart>();
     }
 
     public class ModelPart
     {
+        public string Name;
         public float UnknownFloat;
         public float TranslationX;
         public float TranslationY;

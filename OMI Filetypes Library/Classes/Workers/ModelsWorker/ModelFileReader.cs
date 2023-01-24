@@ -39,10 +39,12 @@ namespace OMI.Workers.Model
 
                 for (int i = 0; i < NumOfModels; i++)
                 {
-                    string Modelname = ReadString(reader);
-                    Formats.Model.Model model = new Formats.Model.Model();
-                    model.TextureHeight = reader.ReadInt32();
-                    model.TextureWidth = reader.ReadInt32(); 
+                    string modelName = ReadString(reader);
+                    Formats.Model.Model model = new Formats.Model.Model
+                    {
+                        Name = modelName,
+                        TextureSize = new System.Drawing.Size(reader.ReadInt32(), reader.ReadInt32())
+                    };
                     int NumOfParts = reader.ReadInt32();
 
                     for (int j = 0; j < NumOfParts; j++)
@@ -78,7 +80,7 @@ namespace OMI.Workers.Model
                         model.Parts.Add(partName, part);
 
                     }
-                    container.models.Add(Modelname, model);
+                    container.models.Add(modelName, model);
                 }
             }
             return container;
