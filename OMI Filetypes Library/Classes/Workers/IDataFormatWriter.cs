@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2022-present miku-666
+﻿/* Copyright (c) 2023-present miku-666
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
@@ -7,7 +7,7 @@
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  * 
- * 1.The origin of this software must not be misrepresented; you must not
+ * 1. The origin of this software must not be misrepresented; you must not
  *    claim that you wrote the original software. If you use this software
  *    in a product, an acknowledgment in the product documentation would be
  *    appreciated but is not required.
@@ -15,15 +15,13 @@
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
 **/
-using System;
-using System.Collections.Generic;
-using OMI.Workers.Archive;
-using OMI.Workers;
+using System.IO;
 
-namespace OMI.Formats.Archive
+namespace OMI.Workers
 {
-    public class ConsoleArchive : Dictionary<string, byte[]>
+    public interface IDataFormatWriter
     {
-        public int SizeOfFile(string filename) => this[filename].Length;
+        void WriteToStream(Stream stream);
+        void WriteToFile(string filename);
     }
 }

@@ -1,81 +1,61 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using OMI.Formats.Color;
-using OMI.utils;
 using System.Diagnostics;
-using System.Drawing;
+using OMI.Workers;
 /*
 * most known Color information is the direct product of May/MattNL's work! check em out! 
 * https://github.com/MattN-L
 */
 namespace OMI.Workers.Color
 {
-    internal class COLFileReader : StreamDataReader
+    public class COLFileReader : IDataFormatReader<ColorContainer>, IDataFormatReader
     {
-
-        public COLFileReader(bool useLittleEndian) : base(useLittleEndian)
+        public ColorContainer FromFile(string filename)
         {
-        }
-
-        public ColorContainer Read(byte[] data)
-        {
-            ColorContainer modelContainer = null;
-            using (var ms = new MemoryStream(data))
+            if (!File.Exists(filename))
+                throw new FileNotFoundException(filename);
+            using (var fs = File.OpenRead(filename))
             {
-                modelContainer = Read(ms);
+                return FromStream(fs);
             }
-            return modelContainer;
         }
 
-        public ColorContainer Read(string filename)
-        {
-            ColorContainer modelContainer = null;
-            if (File.Exists(filename))
-            {
-                using (var fs = File.OpenRead(filename))
-                {
-                    modelContainer = Read(fs);
-                }
-            }
-            return modelContainer;
-        }
-
-        public ColorContainer Read(Stream s)
+        public ColorContainer FromStream(Stream s)
         {
             var colorContainer = new ColorContainer();
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            colorContainer.ColorVersion = ReadInt(s);
-            int NumOfColors = ReadInt(s);
-            for (int i = 0; i < NumOfColors; i++)
+            using (var reader = new EndiannessAwareBinaryReader(s, Endianness.BigEndian))
             {
-                var col = new ColorContainer.Color();
-                col.Name = ReadString(s);
-                col.ColorPallette = System.Drawing.Color.FromArgb(ReadInt(s));
-                colorContainer.Colors.Add(col);
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                colorContainer.Version = reader.ReadInt32();
+                int NumOfColors = reader.ReadInt32();
+                for (int i = 0; i < NumOfColors; i++)
+                {
+                    var col = new ColorContainer.Color();
+                    short length = reader.ReadInt16();
+                    col.Name = reader.ReadString(length, Encoding.ASCII);
+                    col.ColorPallette = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                    colorContainer.Colors.Add(col);
+                }
+                int NumOfWaterColors = reader.ReadInt32();
+                for (int i = 0; i < NumOfWaterColors; i++)
+                {
+                    var col = new ColorContainer.WaterColor();
+                    short length = reader.ReadInt16();
+                    col.Name = reader.ReadString(length, Encoding.ASCII);
+                    col.SurfaceColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                    col.UnderwaterColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                    col.FogColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                    colorContainer.WaterColors.Add(col);
+                }
+                stopwatch.Stop();
+                Debug.WriteLine("Completed in: " + stopwatch.Elapsed, category: nameof(COLFileReader.FromStream));
             }
-            int NumOfWaterColors = ReadInt(s);
-            for (int i = 0; i < NumOfWaterColors; i++)
-            {
-                var col = new ColorContainer.WaterColor();
-                col.Name = ReadString(s);
-                col.SurfaceColor = System.Drawing.Color.FromArgb(ReadInt(s));
-                col.UnderwaterColor = System.Drawing.Color.FromArgb(ReadInt(s));
-                col.FogColor = System.Drawing.Color.FromArgb(ReadInt(s));
-                colorContainer.WaterColors.Add(col);
-            }
-            stopwatch.Stop();
-            Debug.WriteLine("Completed in: " + stopwatch.Elapsed, category: nameof(COLFileReader.Read));
             return colorContainer;
         }
 
-        private string ReadString(Stream stream)
-        {
-            short length = ReadShort(stream);
-            return ReadString(stream, length, Encoding.ASCII);
-        }
+        object IDataFormatReader.FromFile(string filename) => FromFile(filename);
+
+        object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
     }
 }

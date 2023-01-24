@@ -1,88 +1,99 @@
 ﻿using OMI.Formats.Languages;
-using OMI.utils;
+using OMI.Workers;
 using System;
 using System.IO;
 using System.Text;
 
 namespace OMI.Workers.Language
 {
-    internal class LOCFileWriter : StreamDataWriter
+    public class LOCFileWriter : IDataFormatWriter
     {
-        internal LOCFile _locfile;
+        private LOCFile _locfile;
+        private int _type;
         public static void Write(Stream stream, LOCFile file, int type = 2)
         {
-            new LOCFileWriter(file).WriteToStream(stream, type);
+            new LOCFileWriter(file, type).WriteToStream(stream);
         }
 
-        private LOCFileWriter(LOCFile file) : base(false)
-        {
-            _locfile = file;
-        }
-
-        private void WriteToStream(Stream stream, int type)
+        private LOCFileWriter(LOCFile file, int type)
         {
             _ = _locfile ?? throw new ArgumentNullException(nameof(_locfile));
-            WriteInt(stream, type);
-            WriteInt(stream, _locfile.Languages.Count);
-            if (type == 2) WriteLocKeys(stream);
-            WriteLanguages(stream, type);
-            WriteLanguageEntries(stream, type);
+            _locfile = file;
+            _type = type;
         }
 
-
-        private void WriteLocKeys(Stream stream)
+        public void WriteToFile(string filename)
         {
-            stream.WriteByte(0); // dont use stringIds(ints)
-            WriteInt(stream, _locfile.LocKeys.Count);
-            foreach (var key in _locfile.LocKeys.Keys)
-                WriteString(stream, key);
+            using(var fs = File.OpenWrite(filename))
+            {
+                WriteToStream(fs);
+            }
         }
 
-        private void WriteLanguages(Stream stream, int type)
+        public void WriteToStream(Stream stream)
+        {
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
+            {
+                writer.Write(_type);
+                writer.Write(_locfile.Languages.Count);
+                if (_type == 2)
+                {
+                    stream.WriteByte(0); // dont use stringIds(ints)
+                    writer.Write(_locfile.LocKeys.Count);
+                    foreach (var key in _locfile.LocKeys.Keys)
+                        WriteString(writer, key);
+                }
+                WriteLanguages(writer, _type);
+                WriteLanguageEntries(writer, _type);
+            }
+        }
+
+        private void WriteLanguages(EndiannessAwareBinaryWriter writer, int type)
         {
             _locfile.Languages.ForEach(language =>
             {
-                WriteString(stream, language);
+                WriteString(writer, language);
                 
                 //Calculate the size of the language entry
 
                 int size = 0;
-                size += sizeof(int); // null long
+                size += sizeof(int); // null int
                 size += sizeof(byte); // null byte
-                size += (sizeof(short) + Encoding.UTF8.GetByteCount(language)); // language name string
+                size += sizeof(short) + Encoding.UTF8.GetByteCount(language);
                 size += sizeof(int); // key count
 
                 foreach (var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (type == 0) size += (2 + Encoding.UTF8.GetByteCount(locKey)); // loc key string
-                    size += (2 + Encoding.UTF8.GetByteCount(_locfile.LocKeys[locKey][language])); // loc key string
+                    if (type == 0)
+                        size += (2 + writer.EncodingScheme.GetByteCount(locKey)); // loc key string
+                    size += (2 + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language])); // loc key string
                 }
 
-                WriteInt(stream, size);
+                writer.Write(size);
             });
         }
 
-        private void WriteLanguageEntries(Stream stream, int type)
+        private void WriteLanguageEntries(EndiannessAwareBinaryWriter writer, int type)
         {
             _locfile.Languages.ForEach(language =>
             {
-                WriteInt(stream, 0x6D696B75); // :P
-                stream.WriteByte(0); // <- only write when the previous written int was >0
+                writer.Write(0x6D696B75); // :P
+                writer.Write(false); // <- only write when the previous written int was >0
 
-                WriteString(stream, language);
-                WriteInt(stream, _locfile.LocKeys.Keys.Count);
+                WriteString(writer, language);
+                writer.Write(_locfile.LocKeys.Keys.Count);
                 foreach(var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (type == 0) WriteString(stream, locKey);
-                    WriteString(stream, _locfile.LocKeys[locKey][language]);
+                    if (type == 0) WriteString(writer, locKey);
+                    WriteString(writer, _locfile.LocKeys[locKey][language]);
                 }
             });
         }
 
-        private void WriteString(Stream stream, string s)
+        private void WriteString(EndiannessAwareBinaryWriter writer, string s)
         {
-            WriteShort(stream, Convert.ToInt16(Encoding.UTF8.GetByteCount(s)));
-            WriteString(stream, s, Encoding.UTF8);
+            writer.Write(Convert.ToInt16(writer.EncodingScheme.GetByteCount(s)));
+            writer.WriteString(s);
         }
     }
 }

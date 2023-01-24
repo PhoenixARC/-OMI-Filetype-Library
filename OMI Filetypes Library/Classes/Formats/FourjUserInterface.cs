@@ -61,6 +61,9 @@ namespace OMI.Formats.FUI
 
         public class fuiHeader
         {
+            public static readonly byte DefaultVersion = 1;
+            public static readonly long DefaultSignature = DefaultVersion << 56 | 0x495546 << 32;
+
             public long Signature;
             public int ContentSize;
             public string SwfFileName;
@@ -172,30 +175,22 @@ namespace OMI.Formats.FUI
             public int Unknown5;
             public int Unknown6;
             public int Unknown7;
-            public char[] htmltextformat = new char[(0x100)];
+            public char[] htmltextformat = new char[0x100];
         }
         public class fuiFontName
         {
             public int ID;
             public char[] FontName = new char[0x40];
-            public int Unknown0;
-            public char[] Unknown1 = new char[0x40];
-            public int Unknown2;
-            public int Unknown3;
-            public char[] Unknown4 = new char[0x40];
-            public int Unknown5;
-            public int Unknown6;
-            public char[] Unknown7 = new char[0x2c];
         }
         public class fuiSymbol
         {
-            public char[] SymbolName = new char[0x40];
+            public string SymbolName;
             public int ObjectType;
             public int Index;
         }
         public class fuiImportAsset
         {
-            public char[] Name = new char[0x40];
+            public string Name;
         }
         public class fuiBitmap
         {
@@ -228,25 +223,15 @@ namespace OMI.Formats.FUI
         
         public class fuiRGBA
         {
-            public byte R;
-            public byte G;
-            public byte B;
-            public byte A;
-            public uint Color {
-                get => (uint)(R << 24 | G << 16 | B << 8 | A);
-                set
-                {
-                    if (Color == value) return;
-                    R = (byte)(Color >> 24 & 0xff);
-                    G = (byte)(Color >> 16 & 0xff);
-                    B = (byte)(Color >> 08 & 0xff);
-                    A = (byte)(Color >> 00 & 0xff);
-                }
-            }
+            public byte R => (byte)(RGBA >> 24 & 0xff);
+            public byte G => (byte)(RGBA >> 16 & 0xff);
+            public byte B => (byte)(RGBA >> 08 & 0xff);
+            public byte A => (byte)(RGBA >> 00 & 0xff);
+            public int RGBA { get; set; }
 
             public override string ToString()
             {
-                return string.Format("#{0}", Color);
+                return string.Format("#{0}", RGBA);
             }
 
         }

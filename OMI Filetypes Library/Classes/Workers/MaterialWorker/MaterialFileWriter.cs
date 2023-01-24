@@ -5,33 +5,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.Material;
-using OMI.utils;
+using OMI.Workers;
 /*
- * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
- * https://github.com/MattN-L
+* all known Model/Material information is the direct product of May/MattNL's work! check em out! 
+* https://github.com/MattN-L
 */
 namespace OMI.Workers.Material
 {
-    internal class MaterialFileWriter : StreamDataWriter
+    internal class MaterialFileWriter : IDataFormatWriter
     {
-        public MaterialFileWriter(bool useLittleEndian) : base(useLittleEndian)
+        private readonly MaterialContainer container;
+
+        public MaterialFileWriter(MaterialContainer container)
         {
+            this.container = container;
         }
-        public void Build(MaterialContainer Mc, string FilePath, Stream s)
+
+        public void WriteToStream(Stream s)
         {
-            WriteInt(s, Mc.Version);
-            WriteInt(s, Mc.materials.Count);
-            foreach (OMI.Formats.Material.Material mat in Mc.materials)
+            using (var writer = new EndiannessAwareBinaryWriter(s))
             {
-                WriteInt(s, mat.MaterialName.Length);
-                WriteString(s, mat.MaterialName);
-                WriteString(s, mat.MaterialType);
+                writer.Write(container.Version);
+                writer.Write(container.materials.Count);
+                foreach (Formats.Material.Material material in container.materials)
+                {
+                    writer.Write((short)material.Name.Length);
+                    writer.WriteString(material.Name, Encoding.ASCII);
+                    writer.Write((short)material.Type.Length);
+                    writer.WriteString(material.Type, Encoding.ASCII);
+                }
             }
         }
-        private void WriteString(Stream stream, string String)
+
+        public void WriteToFile(string filename)
         {
-            WriteShort(stream, (short)String.Length);
-            WriteString(stream, String, Encoding.UTF8);
+            using (var fs = File.OpenWrite(filename))
+            {
+                WriteToStream(fs);
+            }
         }
     }
 }

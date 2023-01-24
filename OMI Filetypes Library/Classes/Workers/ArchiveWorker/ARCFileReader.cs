@@ -1,51 +1,58 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Text;
 using OMI.Formats.Archive;
-using OMI.utils;
+using OMI.Workers;
 
 namespace OMI.Workers.Archive
 {
-    internal class ARCFileReader : StreamDataReader
+    public class ARCFileReader : IDataFormatReader<ConsoleArchive>, IDataFormatReader
     {
-        public static ConsoleArchive Read(Stream stream, bool useLittleEndian = false)
+        public ConsoleArchive FromFile(string filename)
         {
-            return new ARCFileReader(useLittleEndian).ReadFromStream(stream);
+            if (!File.Exists(filename))
+                throw new FileNotFoundException(filename);
+            using (var fs = File.OpenRead(filename))
+            {
+                return FromStream(fs);
+            }
         }
 
-        private ARCFileReader(bool useLittleEndian) : base(useLittleEndian)
-        {
-        }
-
-        private ConsoleArchive ReadFromStream(Stream stream)
+        public ConsoleArchive FromStream(Stream stream)
         {
             ConsoleArchive _archive = new ConsoleArchive();
-            int NumberOfFiles = ReadInt(stream);
-            for(int i = 0; i < NumberOfFiles; i++)
+            using (EndiannessAwareBinaryReader reader = new EndiannessAwareBinaryReader(stream, Endianness.BigEndian))
             {
-                string name = ReadString(stream);
-                int pos = ReadInt(stream);
-                int size = ReadInt(stream);
-                _archive[name] = ReadBytesFromPosition(stream, size, pos);
+                int NumberOfFiles = reader.ReadInt32();
+                for (int i = 0; i < NumberOfFiles; i++)
+                {
+                    string name = ReadString(reader);
+                    int pos = reader.ReadInt32();
+                    int size = reader.ReadInt32();
+                    _archive[name] = ReadBytesFromPosition(stream, pos, size);
+                }
             }
             return _archive;
         }
 
-        private string ReadString(Stream stream)
+        private string ReadString(EndiannessAwareBinaryReader reader)
         {
-            short length = ReadShort(stream);
-            return ReadString(stream, length, Encoding.UTF8);
+            short length = reader.ReadInt16();
+            return reader.ReadString(length, Encoding.ASCII);
         }
 
-        private byte[] ReadBytesFromPosition(Stream stream, int size, int position)
+        private byte[] ReadBytesFromPosition(Stream stream, int position, int size)
         {
-            long originalPOS = stream.Position;
+            long origin = stream.Position;
             if (stream.Seek(position, SeekOrigin.Begin) != position) throw new Exception();
-            byte[] bytes = ReadBytes(stream, size);
-            if (stream.Seek(originalPOS, SeekOrigin.Begin) != originalPOS) throw new Exception();
+            byte[] bytes = new byte[size];
+            stream.Read(bytes, 0, size);
+            if (stream.Seek(origin, SeekOrigin.Begin) != origin) throw new Exception();
             return bytes;
         }
 
+        object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
+
+        object IDataFormatReader.FromFile(string filename) => FromFile(filename);
     }
 }

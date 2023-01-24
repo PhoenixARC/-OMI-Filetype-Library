@@ -1,66 +1,54 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OMI.Formats.Material;
-using OMI.utils;
+using OMI.Workers;
 /*
- * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
- * https://github.com/MattN-L
+* all known Model/Material information is the direct product of May/MattNL's work! check em out! 
+* https://github.com/MattN-L
 */
 namespace OMI.Workers.Material
 {
-    public class MaterialFileReader : StreamDataReader
+    public class MaterialFileReader : IDataFormatReader<MaterialContainer>, IDataFormatReader
     {
-        public MaterialFileReader(bool useLittleEndian) : base(useLittleEndian)
+        public MaterialContainer FromFile(string filename)
         {
-        }
-
-
-        public MaterialContainer Read(byte[] locData, string Filepath)
-        {
-            MaterialContainer modelContainer = new MaterialContainer();
-            MemoryStream s = new MemoryStream(locData);
-            return Read(modelContainer, s);
-        }
-
-        public MaterialContainer PaReadrse(string Filepath)
-        {
-            MaterialContainer modelContainer = new MaterialContainer();
-            if (File.Exists(Filepath))
+            if (File.Exists(filename))
             {
-                using (BinaryReader binaryReader = new BinaryReader(File.Open(Filepath, FileMode.Open)))
+                MaterialContainer modelContainer = null;
+                using (var fs = File.OpenRead(filename))
                 {
-                    Stream baseStream = binaryReader.BaseStream;
-                    modelContainer = Read(modelContainer, baseStream);
+                    modelContainer = FromStream(fs);
                 }
+                return modelContainer;
             }
-            return modelContainer;
+            throw new FileNotFoundException(filename);
         }
 
-        public MaterialContainer Read(MaterialContainer Mc, Stream s)
+        public MaterialContainer FromStream(Stream stream)
         {
-            DateTime Begin = DateTime.Now;
-            Mc.Version = ReadInt(s);
-            int NumOfMaterials = ReadInt(s);
-            for (int i = 0; i < NumOfMaterials; i++)
+            var container = new MaterialContainer();
+            using (var reader = new EndiannessAwareBinaryReader(stream, encoding: Encoding.ASCII, leaveOpen: true))
             {
-                OMI.Formats.Material.Material mat = new OMI.Formats.Material.Material();
-                mat.MaterialName = ReadString(s);
-                mat.MaterialType = ReadString(s);
-                Mc.materials.Add(mat);
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                container.Version = reader.ReadInt32();
+                int NumOfMaterials = reader.ReadInt32();
+                for (int i = 0; i < NumOfMaterials; i++)
+                {
+                    Formats.Material.Material mat = new Formats.Material.Material();
+                    mat.Name = reader.ReadString(reader.ReadInt16());
+                    mat.Type = reader.ReadString(reader.ReadInt16());
+                    container.materials.Add(mat);
+                }
+                stopwatch.Stop();
+                Debug.WriteLine("Completed in: " + stopwatch.Elapsed, category: nameof(MaterialFileReader.FromStream));
             }
-            TimeSpan duration = new TimeSpan(DateTime.Now.Ticks - Begin.Ticks);
+            return container;
+        }
 
-            Console.WriteLine("Completed in: " + duration);
-            return Mc;
-        }
-        private string ReadString(Stream stream)
-        {
-            short length = ReadShort(stream);
-            return ReadString(stream, length, Encoding.UTF8);
-        }
+        object IDataFormatReader.FromFile(string filename) => FromFile(filename);
+
+        object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
     }
 }

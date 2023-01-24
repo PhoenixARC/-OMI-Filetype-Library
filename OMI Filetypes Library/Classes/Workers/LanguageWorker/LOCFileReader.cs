@@ -3,71 +3,80 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OMI.Formats.Languages;
-using OMI.utils;
 
 namespace OMI.Workers.Language
 {
-    internal class LOCFileReader : StreamDataReader
+    public class LOCFileReader : IDataFormatReader<LOCFile>, IDataFormatReader
     {
-        internal LOCFile _file;
-
-        public static LOCFile Read(Stream stream)
+        public LOCFile FromFile(string filename)
         {
-            return new LOCFileReader().ReadFromStream(stream);
-        }
-
-        private LOCFileReader() : base(false)
-        {
-            _file = new LOCFile();
-        }
-
-        private LOCFile ReadFromStream(Stream stream)
-        {
-            int loc_type = ReadInt(stream);
-            int language_count = ReadInt(stream);
-            bool lookUpKey = loc_type == 2;
-            List<string> keys = lookUpKey ? ReadKeys(stream) : null;
-            for (int i = 0; i < language_count; i++)
+            if (File.Exists(filename))
             {
-                string language = ReadString(stream);
-                ReadInt(stream); // unknown value
-                _file.Languages.Add(language);
-            }
-            for (int i = 0; i < language_count; i++)
-            {
-                if (0 < ReadInt(stream))
-                    stream.ReadByte();
-                string language = ReadString(stream);
-                if (!_file.Languages.Contains(language))
-                    throw new KeyNotFoundException(nameof(language));
-                int count = ReadInt(stream);
-                for (int j = 0; j < count; j++)
+                LOCFile locFile = null;
+                using (var fs = File.OpenRead(filename))
                 {
-                    string key = lookUpKey ? keys[j] : ReadString(stream);
-                    string value = ReadString(stream);
-                    _file.SetLocEntry(key, language, value);
+                    locFile = FromStream(fs);
+                }
+                return locFile;
+            }
+            throw new FileNotFoundException(filename);
+        }
+
+        public LOCFile FromStream(Stream stream)
+        {
+            LOCFile locFile = new LOCFile();
+            using (var reader = new EndiannessAwareBinaryReader(stream, Endianness.BigEndian))
+            {
+                int loc_type = reader.ReadInt32();
+                int language_count = reader.ReadInt32();
+                bool lookUpKey = loc_type == 2;
+                List<string> keys = lookUpKey ? ReadKeys(reader) : null;
+                for (int i = 0; i < language_count; i++)
+                {
+                    string language = ReadString(reader);
+                    reader.ReadInt32();
+                    locFile.Languages.Add(language);
+                }
+                for (int i = 0; i < language_count; i++)
+                {
+                    if (0 < reader.ReadInt32())
+                        stream.ReadByte();
+                    string language = ReadString(reader);
+                    if (!locFile.Languages.Contains(language))
+                        throw new KeyNotFoundException(nameof(language));
+                    int count = reader.ReadInt32();
+                    for (int j = 0; j < count; j++)
+                    {
+                        string key = lookUpKey ? keys[j] : ReadString(reader);
+                        string value = ReadString(reader);
+                        locFile.SetLocEntry(key, language, value);
+                    }
                 }
             }
-            return _file;
+            return locFile;
         }
 
-        private List<string> ReadKeys(Stream stream)
+        object IDataFormatReader.FromFile(string filename) => FromFile(filename);
+
+        object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
+
+        private List<string> ReadKeys(EndiannessAwareBinaryReader reader)
         {
-            bool useUniqueIds = Convert.ToBoolean(stream.ReadByte());
-            int keyCount = ReadInt(stream);
+            bool useUniqueIds = reader.ReadBoolean();
+            int keyCount = reader.ReadInt32();
             List<string> keys = new List<string>(keyCount);
             for (int i = 0; i < keyCount; i++)
             {
-                string key = useUniqueIds ? ReadInt(stream).ToString("X08") : ReadString(stream);
+                string key = useUniqueIds ? reader.ReadInt32().ToString("X08") : ReadString(reader);
                 keys.Add(key);
             }
             return keys;
         }
 
-        private string ReadString(Stream stream)
+        private string ReadString(EndiannessAwareBinaryReader reader)
         {
-            int length = ReadShort(stream);
-            return ReadString(stream, length, Encoding.UTF8);
+            int length = reader.ReadInt16();
+            return reader.ReadString(length, Encoding.UTF8);
         }
     }
 }

@@ -5,46 +5,47 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OMI.Formats.Archive;
-using OMI.utils;
+using OMI.Workers;
 
 namespace OMI.Workers.Archive
 {
-    internal class ARCFileWriter : StreamDataWriter
+    public class ARCFileWriter : IDataFormatWriter
     {
         private ConsoleArchive _archive;
 
-        public static void Write(Stream stream, ConsoleArchive archive, bool useLittleEndian = false)
-        {
-            new ARCFileWriter(archive, useLittleEndian).WriteToStream(stream);
-        }
-
-        public ARCFileWriter(ConsoleArchive archive, bool useLittleEndian) : base(useLittleEndian)
+        public ARCFileWriter(ConsoleArchive archive)
         {
             _archive = archive;
         }
 
-        private void WriteToStream(Stream stream)
+        public void WriteToFile(string filename)
         {
-            WriteInt(stream, _archive.Count);
-            int currentOffset = 4 + _archive.Keys.ToArray().Sum(key => 10 + key.Length);
-            foreach (var pair in _archive)
+            using (var fs = File.OpenWrite(filename))
             {
-                int size = pair.Value.Length;
-                WriteString(stream, pair.Key);
-                WriteInt(stream, currentOffset);
-                WriteInt(stream, size);
-                currentOffset += size;
-            }
-            foreach (byte[] data in _archive.Values)
-            {
-                WriteBytes(stream, data);
+                WriteToStream(fs);
             }
         }
 
-        private void WriteString(Stream stream, string String)
+        public void WriteToStream(Stream stream)
         {
-            WriteShort(stream, (short)String.Length);
-            WriteString(stream, String, Encoding.UTF8);
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
+            {
+                writer.Write(_archive.Count);
+                int currentOffset = 4 + _archive.Keys.ToArray().Sum(key => 10 + key.Length);
+                foreach (var pair in _archive)
+                {
+                    int size = pair.Value.Length;
+                    writer.Write((short)pair.Key.Length);
+                    writer.WriteString(pair.Key, Encoding.ASCII);
+                    writer.Write(currentOffset);
+                    writer.Write(size);
+                    currentOffset += size;
+                }
+                foreach (byte[] data in _archive.Values)
+                {
+                    writer.Write(data);
+                }
+            }
         }
     }
 }

@@ -11,19 +11,10 @@ namespace OMI.Formats.Model
 {
     public class ModelContainer
     {
-
-        public Dictionary<string, ModelPiece> models = new Dictionary<string, ModelPiece>();
-
-
-        public ModelContainer()
-        {
-
-        }
-
-
+        public Dictionary<string, Model> models = new Dictionary<string, Model>();
     }
 
-    public class ModelPiece
+    public class Model
     {
         public int TextureWidth;
         public int TextureHeight;

@@ -1,99 +1,97 @@
-﻿using System;
-using System.Threading;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using System.IO;
 using OMI.Formats.Model;
-using OMI.utils;
 /*
- * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
- * https://github.com/MattN-L
+* all known Model/Material information is the direct product of May/MattNL's work! check em out! 
+* https://github.com/MattN-L
 */
 namespace OMI.Workers.Model
 {
-    internal class ModelFileReader : StreamDataReader
+    public class ModelFileReader : IDataFormatReader<ModelContainer>, IDataFormatReader
     {
-
-        public ModelFileReader(bool useLittleEndian) : base(useLittleEndian)
+        public ModelContainer Read(byte[] data)
         {
-        }
-        public ModelContainer Read(byte[] locData)
-        {
-            ModelContainer modelContainer = new ModelContainer();
-            MemoryStream s = new MemoryStream(locData);
-            return Read(modelContainer, s);
+            MemoryStream s = new MemoryStream(data);
+            return FromStream(s);
         }
 
-        public ModelContainer Parse(string Filepath)
+        public ModelContainer FromFile(string filename)
         {
-            ModelContainer modelContainer = new ModelContainer();
-            if (File.Exists(Filepath))
+            if (File.Exists(filename))
             {
-                using (BinaryReader binaryReader = new BinaryReader(File.Open(Filepath, FileMode.Open)))
+                ModelContainer modelContainer = null;
+                using (var fs = File.OpenRead(filename))
                 {
-                    Stream baseStream = binaryReader.BaseStream;
-                    modelContainer = Read(modelContainer, baseStream);
+                    modelContainer = FromStream(fs);
                 }
+                return modelContainer;
             }
-            return modelContainer;
+            throw new FileNotFoundException(filename);
         }
 
-        public ModelContainer Read(ModelContainer Mc, Stream s)
+        public ModelContainer FromStream(Stream stream)
         {
-            ReadInt(s); // Get Models.bin version
-            int NumOfModels = ReadInt(s); // Get Number Of Models
-
-            for (int i = 0; i < NumOfModels; i++)
+            var container = new ModelContainer();
+            using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, true, Endianness.BigEndian))
             {
-                string Modelname = ReadString(s); // get model name
-                ModelPiece mp = new ModelPiece();
-                mp.TextureHeight = ReadInt(s); // get texture height
-                mp.TextureWidth = ReadInt(s); // get texture width
-                int NumOfParts = ReadInt(s); // get number of parts in model
+                int version = reader.ReadInt32();
+                int NumOfModels = reader.ReadInt32();
 
-                for (int j = 0; j < NumOfParts; j++)
+                for (int i = 0; i < NumOfModels; i++)
                 {
-                    ModelPart mpart = new ModelPart();
-                    string ModelPartname = ReadString(s); // get model part name
-                    mpart.TranslationX = ReadFloat(s); // get model part translation in X dimension
-                    mpart.TranslationY = ReadFloat(s); // get model part translation in Y dimension
-                    mpart.TranslationZ = ReadFloat(s); // get model part translation in Z dimension
-                    mpart.UnknownFloat = ReadFloat(s); // get Unknown Floating Point number
-                    mpart.TextureOffsetX = ReadFloat(s); // get model part Texture Offset in X dimension
-                    mpart.TextureOffsetY = ReadFloat(s); // get model part Texture Offset in Y dimension
-                    mpart.RotationX = ReadFloat(s); // get model part Rotation in X dimension
-                    mpart.RotationY = ReadFloat(s); // get model part Rotation in Y dimension
-                    mpart.RotationZ = ReadFloat(s); // get model part Rotation in Z dimension
-                    int NumOfBoxes = ReadInt(s); // get number of boxes in model part
+                    string Modelname = ReadString(reader);
+                    Formats.Model.Model model = new Formats.Model.Model();
+                    model.TextureHeight = reader.ReadInt32();
+                    model.TextureWidth = reader.ReadInt32(); 
+                    int NumOfParts = reader.ReadInt32();
 
-                    for (int x = 0; x < NumOfBoxes; x++)
+                    for (int j = 0; j < NumOfParts; j++)
                     {
-                        ModelBox mb = new ModelBox();
-                        mb.PositionX = ReadFloat(s); // get part box position in X dimension
-                        mb.PositionY = ReadFloat(s); // get part box position in Y dimension
-                        mb.PositionZ = ReadFloat(s); // get part box position in Z dimension
-                        mb.Length = ReadInt(s); // get part box Length
-                        mb.Height = ReadInt(s); // get part box Height
-                        mb.Width = ReadInt(s); // get part box Width
-                        mb.UvX = ReadFloat(s); // get part box Texture UV in X dimension
-                        mb.UvY = ReadFloat(s); // get part box Texture UV in Y dimension
-                        mb.Scale = ReadFloat(s); // get part box Scale
-                        mb.Mirror = ReadBool(s);
-                        mpart.Boxes.Add(x.ToString(), mb);
+                        ModelPart mpart = new ModelPart();
+                        string ModelPartname = ReadString(reader);
+                        mpart.TranslationX = reader.ReadSingle();
+                        mpart.TranslationY = reader.ReadSingle();
+                        mpart.TranslationZ = reader.ReadSingle();
+                        mpart.UnknownFloat = reader.ReadSingle();
+                        mpart.TextureOffsetX = reader.ReadSingle();
+                        mpart.TextureOffsetY = reader.ReadSingle();
+                        mpart.RotationX = reader.ReadSingle();
+                        mpart.RotationY = reader.ReadSingle();
+                        mpart.RotationZ = reader.ReadSingle();
+                        int NumOfBoxes = reader.ReadInt32();
+
+                        for (int x = 0; x < NumOfBoxes; x++)
+                        {
+                            ModelBox mb = new ModelBox();
+                            mb.PositionX = reader.ReadSingle();
+                            mb.PositionY = reader.ReadSingle();
+                            mb.PositionZ = reader.ReadSingle();
+                            mb.Length = reader.ReadInt32();
+                            mb.Height = reader.ReadInt32();
+                            mb.Width = reader.ReadInt32();
+                            mb.UvX = reader.ReadSingle();
+                            mb.UvY = reader.ReadSingle();
+                            mb.Scale = reader.ReadSingle();
+                            mb.Mirror = reader.ReadBoolean();
+                            mpart.Boxes.Add(x.ToString(), mb);
+                        }
+                        model.Parts.Add(ModelPartname, mpart);
+
                     }
-                    mp.Parts.Add(ModelPartname, mpart);
-
+                    container.models.Add(Modelname, model);
                 }
-                Mc.models.Add(Modelname, mp);
             }
-
-            return Mc;
+            return container;
         }
-        private string ReadString(Stream stream)
+
+        private string ReadString(EndiannessAwareBinaryReader reader)
         {
-            short length = ReadShort(stream);
-            return ReadString(stream, length, Encoding.UTF8);
+            short length = reader.ReadInt16();
+            return reader.ReadString(length);
         }
 
+        object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
+
+        object IDataFormatReader.FromFile(string filename) => FromFile(filename);
     }
 }

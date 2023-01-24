@@ -14,9 +14,10 @@ namespace OMI.Formats.Material
         public int Version;
         public List<Material> materials = new List<Material>();
     }
+
     public class Material
     {
-        public string MaterialName;
-        public string MaterialType;
+        public string Name;
+        public string Type;
     }
 }

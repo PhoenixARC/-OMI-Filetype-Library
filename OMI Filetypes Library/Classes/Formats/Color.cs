@@ -12,7 +12,7 @@ namespace OMI.Formats.Color
 {
     public class ColorContainer
     {
-        public int ColorVersion;
+        public int Version;
         public List<Color> Colors = new List<Color>();
         public List<WaterColor> WaterColors = new List<WaterColor>();
 
