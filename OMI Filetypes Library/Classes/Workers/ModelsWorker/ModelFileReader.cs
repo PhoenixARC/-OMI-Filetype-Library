@@ -47,35 +47,35 @@ namespace OMI.Workers.Model
 
                     for (int j = 0; j < NumOfParts; j++)
                     {
-                        ModelPart mpart = new ModelPart();
-                        string ModelPartname = ReadString(reader);
-                        mpart.TranslationX = reader.ReadSingle();
-                        mpart.TranslationY = reader.ReadSingle();
-                        mpart.TranslationZ = reader.ReadSingle();
-                        mpart.UnknownFloat = reader.ReadSingle();
-                        mpart.TextureOffsetX = reader.ReadSingle();
-                        mpart.TextureOffsetY = reader.ReadSingle();
-                        mpart.RotationX = reader.ReadSingle();
-                        mpart.RotationY = reader.ReadSingle();
-                        mpart.RotationZ = reader.ReadSingle();
+                        ModelPart part = new ModelPart();
+                        string partName = ReadString(reader);
+                        part.TranslationX = reader.ReadSingle();
+                        part.TranslationY = reader.ReadSingle();
+                        part.TranslationZ = reader.ReadSingle();
+                        part.UnknownFloat = reader.ReadSingle();
+                        part.TextureOffsetX = reader.ReadSingle();
+                        part.TextureOffsetY = reader.ReadSingle();
+                        part.RotationX = reader.ReadSingle();
+                        part.RotationY = reader.ReadSingle();
+                        part.RotationZ = reader.ReadSingle();
                         int NumOfBoxes = reader.ReadInt32();
 
                         for (int x = 0; x < NumOfBoxes; x++)
                         {
-                            ModelBox mb = new ModelBox();
-                            mb.PositionX = reader.ReadSingle();
-                            mb.PositionY = reader.ReadSingle();
-                            mb.PositionZ = reader.ReadSingle();
-                            mb.Length = reader.ReadInt32();
-                            mb.Height = reader.ReadInt32();
-                            mb.Width = reader.ReadInt32();
-                            mb.UvX = reader.ReadSingle();
-                            mb.UvY = reader.ReadSingle();
-                            mb.Scale = reader.ReadSingle();
-                            mb.Mirror = reader.ReadBoolean();
-                            mpart.Boxes.Add(x.ToString(), mb);
+                            ModelBox box = new ModelBox();
+                            box.PositionX = reader.ReadSingle();
+                            box.PositionY = reader.ReadSingle();
+                            box.PositionZ = reader.ReadSingle();
+                            box.Length = reader.ReadInt32();
+                            box.Height = reader.ReadInt32();
+                            box.Width = reader.ReadInt32();
+                            box.UvX = reader.ReadSingle();
+                            box.UvY = reader.ReadSingle();
+                            box.Scale = reader.ReadSingle();
+                            box.Mirror = reader.ReadBoolean();
+                            part.Boxes.Add(box);
                         }
-                        model.Parts.Add(ModelPartname, mpart);
+                        model.Parts.Add(partName, part);
 
                     }
                     container.models.Add(Modelname, model);

@@ -57,7 +57,7 @@ namespace OMI.Workers.Model
                         writer.Write(part.Value.RotationY);
                         writer.Write(part.Value.RotationZ);
                         writer.Write(part.Value.Boxes.Count);
-                        foreach (var box in part.Value.Boxes.Values)
+                        foreach (var box in part.Value.Boxes)
                         {
                             writer.Write(box.PositionX);
                             writer.Write(box.PositionY);

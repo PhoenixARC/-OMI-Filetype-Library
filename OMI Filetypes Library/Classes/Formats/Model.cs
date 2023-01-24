@@ -16,6 +16,7 @@ namespace OMI.Formats.Model
 
     public class Model
     {
+        public string Name;
         public int TextureWidth;
         public int TextureHeight;
         public Dictionary<string, ModelPart> Parts = new Dictionary<string, ModelPart>();
@@ -32,7 +33,7 @@ namespace OMI.Formats.Model
         public float RotationX;
         public float RotationY;
         public float RotationZ;
-        public Dictionary<string, ModelBox> Boxes = new Dictionary<string, ModelBox>();
+        public List<ModelBox> Boxes = new List<ModelBox>();
     }
 
     public class ModelBox
