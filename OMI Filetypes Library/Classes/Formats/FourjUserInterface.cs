@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,40 +15,40 @@ namespace OMI.Formats.FUI
 {
     public class FourjUserInterface
     {
-        public Component.fuiHeader Header;
-        public List<Component.fuiTimeline> Timelines;
-        public List<Component.fuiTimelineAction> TimelineActions;
-        public List<Component.fuiShape> Shapes;
-        public List<Component.fuiShapeComponent> ShapeComponents;
-        public List<Component.fuiVert> Verts;
-        public List<Component.fuiTimelineFrame> TimelineFrames;
-        public List<Component.fuiTimelineEvent> TimelineEvents;
-        public List<Component.fuiTimelineEventName> TimelineEventNames;
-        public List<Component.fuiReference> References;
-        public List<Component.fuiEdittext> Edittexts;
-        public List<Component.fuiFontName> FontNames;
-        public List<Component.fuiSymbol> Symbols;
-        public List<Component.fuiImportAsset> ImportAssets;
-        public List<Component.fuiBitmap> Bitmaps;
-        public List<Component.fuiImage> Images = new List<Component.fuiImage>();
+        public Components.FuiHeader Header;
+        public List<Components.FuiTimeline> Timelines;
+        public List<Components.FuiTimelineAction> TimelineActions;
+        public List<Components.FuiShape> Shapes;
+        public List<Components.FuiShapeComponent> ShapeComponents;
+        public List<Components.FuiVert> Verts;
+        public List<Components.FuiTimelineFrame> TimelineFrames;
+        public List<Components.FuiTimelineEvent> TimelineEvents;
+        public List<Components.FuiTimelineEventName> TimelineEventNames;
+        public List<Components.FuiReference> References;
+        public List<Components.FuiEdittext> Edittexts;
+        public List<Components.FuiFontName> FontNames;
+        public List<Components.FuiSymbol> Symbols;
+        public List<Components.FuiImportAsset> ImportAssets;
+        public List<Components.FuiBitmap> Bitmaps;
+        public List<byte[]> ImagesData = new List<byte[]>();
 
         public FourjUserInterface()
         {
-            Header = new Component.fuiHeader();
-            Timelines = new List<Component.fuiTimeline>();
-            TimelineActions = new List<Component.fuiTimelineAction>();
-            Shapes = new List<Component.fuiShape>();
-            ShapeComponents = new List<Component.fuiShapeComponent>();
-            Verts = new List<Component.fuiVert>();
-            TimelineFrames = new List<Component.fuiTimelineFrame>();
-            TimelineEvents = new List<Component.fuiTimelineEvent>();
-            TimelineEventNames = new List<Component.fuiTimelineEventName>();
-            References = new List<Component.fuiReference>();
-            Edittexts = new List<Component.fuiEdittext>();
-            FontNames = new List<Component.fuiFontName>();
-            Symbols = new List<Component.fuiSymbol>();
-            ImportAssets = new List<Component.fuiImportAsset>();
-            Bitmaps = new List<Component.fuiBitmap>();
+            Header = new Components.FuiHeader();
+            Timelines = new List<Components.FuiTimeline>();
+            TimelineActions = new List<Components.FuiTimelineAction>();
+            Shapes = new List<Components.FuiShape>();
+            ShapeComponents = new List<Components.FuiShapeComponent>();
+            Verts = new List<Components.FuiVert>();
+            TimelineFrames = new List<Components.FuiTimelineFrame>();
+            TimelineEvents = new List<Components.FuiTimelineEvent>();
+            TimelineEventNames = new List<Components.FuiTimelineEventName>();
+            References = new List<Components.FuiReference>();
+            Edittexts = new List<Components.FuiEdittext>();
+            FontNames = new List<Components.FuiFontName>();
+            Symbols = new List<Components.FuiSymbol>();
+            ImportAssets = new List<Components.FuiImportAsset>();
+            Bitmaps = new List<Components.FuiBitmap>();
         }
 
         public override string ToString()
@@ -55,14 +56,16 @@ namespace OMI.Formats.FUI
             return string.Format("Header: {0}", Header);
         }
     }
-    namespace Component
+    namespace Components
     {
         #region Base FUI Structures
 
-        public class fuiHeader
+        public class FuiHeader
         {
             public static readonly byte DefaultVersion = 1;
             public static readonly long DefaultSignature = DefaultVersion << 56 | 0x495546 << 32;
+
+            public byte Version => (byte)(Signature >> 56 & 0xff);
 
             public long Signature;
             public int ContentSize;
@@ -82,28 +85,27 @@ namespace OMI.Formats.FUI
             public int imagesSize;
             public int fuiFontNameCount;
             public int fuiImportAssetCount;
-            public fuiRect frameSize = new fuiRect();
+            public FuiRect frameSize = new FuiRect();
 
             public override string ToString()
             {
                 return $"Signature: 0x{Signature.ToString("X16")}\n" +
-                    $"Version: {Signature >> 56 & 0xff}\n" +
+                    $"Version: {Version}\n" +
                     $"Content Size: {ContentSize}\n" +
                     $"Frame Size: {frameSize}";
             }
-
         }
-        public class fuiTimeline
+        public class FuiTimeline
         {
             public int SymbolIndex;
             public short FrameIndex;
             public short FrameCount;
             public short ActionIndex;
             public short ActionCount;
-            public fuiRect Rectangle = new fuiRect();
+            public FuiRect Rectangle = new FuiRect();
         }
 
-        public class fuiTimelineAction
+        public class FuiTimelineAction
         {
             public short ActionType;
             public short Unknown;
@@ -111,36 +113,38 @@ namespace OMI.Formats.FUI
             public string StringArg1;
         }
 
-        public class fuiShape
+        public class FuiShape
         {
             public int Unknown;
             public int ShapeComponentIndex;
             public int ShapeComponentCount;
-            public fuiRect Rectangle = new fuiRect();
+            public FuiRect Rectangle = new FuiRect();
         }
 
-        public class fuiShapeComponent
+        public class FuiShapeComponent
         {
-            public fuiFillStyle FillInfo = new fuiFillStyle();
+            public FuiFillStyle FillInfo = new FuiFillStyle();
             public int VertIndex;
             public int VertCount;
         }
 
-        public class fuiVert
+        public class FuiVert
         {
             public float X;
             public float Y;
         }
 
-        public class fuiTimelineFrame
+        public class FuiTimelineFrame
         {
-            public char[] FrameName = new char[0x40];
+            /// <summary>
+            /// Max size: 0x40
+            /// </summary>
+            public string FrameName;
             public int EventIndex;
             public int EventCount;
         }
 
-
-        public class fuiTimelineEvent
+        public class FuiTimelineEvent
         {
             public short EventType;
             public short ObjectType;
@@ -148,51 +152,70 @@ namespace OMI.Formats.FUI
             public short Index;
             public short Unknown1;
             public short NameIndex;
-            public fuiMatrix matrix = new fuiMatrix();
-            public fuiColorTransform ColorTransform = new fuiColorTransform();
-            public fuiRGBA Color = new fuiRGBA();
+            public FuiMatrix matrix = new FuiMatrix();
+            public FuiColorTransform ColorTransform = new FuiColorTransform();
+            public FuiRGBA Color = new FuiRGBA();
         }
-        public class fuiTimelineEventName
+        public class FuiTimelineEventName
         {
-            public char[] EventName = new char[0x40];
+            /// <summary>
+            /// Max size: 0x40
+            /// </summary>
+            public string EventName;
         }
-        public class fuiReference
+        public class FuiReference
         {
             public int SymbolIndex;
-            public char[] Name = new char[0x40];
+            /// <summary>
+            /// Max size: 0x40
+            /// </summary>
+            public string Name;
             public int Index;
         }
-        public class fuiEdittext
+        public class FuiEdittext
         {
             public int Unknown0;
-            public fuiRect Rectangle = new fuiRect();
+            public FuiRect Rectangle = new FuiRect();
             public int FontID;
             public float Unknown1;
-            public fuiRGBA Color = new fuiRGBA();
+            public FuiRGBA Color = new FuiRGBA();
             public int Unknown2;
             public int Unknown3;
             public int Unknown4;
             public int Unknown5;
             public int Unknown6;
             public int Unknown7;
-            public char[] htmltextformat = new char[0x100];
+            /// <summary>
+            /// Max size: 0x100
+            /// </summary>
+            public string htmltextformat;
         }
-        public class fuiFontName
+        
+        public class FuiFontName
         {
             public int ID;
-            public char[] FontName = new char[0x40];
+            /// <summary>
+            /// Max size: 0x40
+            /// </summary>
+            public string FontName;
         }
-        public class fuiSymbol
+        
+        public class FuiSymbol
         {
+            /// <summary>
+            /// Max size: 0x40
+            /// </summary>
             public string SymbolName;
             public int ObjectType;
             public int Index;
         }
-        public class fuiImportAsset
+        
+        public class FuiImportAsset
         {
             public string Name;
         }
-        public class fuiBitmap
+
+        public class FuiBitmap
         {
             public int Unknown0;
             public int ImageFormat;
@@ -206,22 +229,25 @@ namespace OMI.Formats.FUI
 
         #endregion
 
-        #region Used structures in an FUI element
+        #region Structures used in FUI elements
 
-        public class fuiRect
+        public class FuiRect
         {
             public float MinX;
             public float MinY;
             public float MaxX;
             public float MaxY;
 
+            public float Width => MaxX - MinX;
+            public float Height => MaxY - MinY;
+
             public override string ToString()
             {
-                return string.Format("{0}x{1}", MaxX-MinX, MaxY-MinY);
+                return string.Format("{0}x{1}", Width, Height);
             }
         }
         
-        public class fuiRGBA
+        public class FuiRGBA
         {
             public byte R => (byte)(RGBA >> 24 & 0xff);
             public byte G => (byte)(RGBA >> 16 & 0xff);
@@ -236,7 +262,7 @@ namespace OMI.Formats.FUI
 
         }
 
-        public class fuiMatrix
+        public class FuiMatrix
         {
             public float ScaleX;
             public float ScaleY;
@@ -246,7 +272,7 @@ namespace OMI.Formats.FUI
             public float TranslationY;
         }
         
-        public class fuiColorTransform
+        public class FuiColorTransform
         {
             public float RedMultTerm;
             public float GreenMultTerm;
@@ -258,12 +284,12 @@ namespace OMI.Formats.FUI
             public float AlphaAddTerm;
         }
         
-        public class fuiFillStyle
+        public class FuiFillStyle
         {
             public int Type;
-            public fuiRGBA Color = new fuiRGBA();
+            public FuiRGBA Color = new FuiRGBA();
             public int BitmapIndex;
-            public fuiMatrix Matrix = new fuiMatrix();
+            public FuiMatrix Matrix = new FuiMatrix();
         }
         
         public enum fuiObject_eFuiObjectType
@@ -276,14 +302,7 @@ namespace OMI.Formats.FUI
             EDITTEXT = 5,
             CODEGENRECT = 6,
         }
-        
-        public class fuiImage
-        {
-            public byte[] data;
-            public int Format;
-        }
 
         #endregion
-
     }
 }
