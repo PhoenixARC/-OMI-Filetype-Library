@@ -29,20 +29,16 @@ namespace OMI.Workers.Material
         public MaterialContainer FromStream(Stream stream)
         {
             var container = new MaterialContainer();
-            using (var reader = new EndiannessAwareBinaryReader(stream, encoding: Encoding.ASCII, leaveOpen: true))
+            using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, leaveOpen: true, Endianness.BigEndian))
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
                 container.Version = reader.ReadInt32();
                 int NumOfMaterials = reader.ReadInt32();
                 for (int i = 0; i < NumOfMaterials; i++)
                 {
-                    Formats.Material.Material mat = new Formats.Material.Material();
-                    mat.Name = reader.ReadString(reader.ReadInt16());
-                    mat.Type = reader.ReadString(reader.ReadInt16());
-                    container.materials.Add(mat);
+                    string name = reader.ReadString(reader.ReadInt16());
+                    string type = reader.ReadString(reader.ReadInt16());
+                    container.Add(new MaterialContainer.Material(name, type));
                 }
-                stopwatch.Stop();
-                Debug.WriteLine("Completed in: " + stopwatch.Elapsed, category: nameof(MaterialFileReader.FromStream));
             }
             return container;
         }

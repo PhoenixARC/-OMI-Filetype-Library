@@ -21,18 +21,18 @@ namespace OMI.Workers.Material
             this.container = container;
         }
 
-        public void WriteToStream(Stream s)
+        public void WriteToStream(Stream stream)
         {
-            using (var writer = new EndiannessAwareBinaryWriter(s))
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.ASCII, leaveOpen: true, Endianness.BigEndian))
             {
                 writer.Write(container.Version);
-                writer.Write(container.materials.Count);
-                foreach (Formats.Material.Material material in container.materials)
+                writer.Write(container.Count);
+                foreach (var material in container)
                 {
-                    writer.Write((short)material.Name.Length);
-                    writer.WriteString(material.Name, Encoding.ASCII);
-                    writer.Write((short)material.Type.Length);
-                    writer.WriteString(material.Type, Encoding.ASCII);
+                    writer.Write(Convert.ToInt16(material.Name.Length));
+                    writer.WriteString(material.Name);
+                    writer.Write(Convert.ToInt16(material.Type.Length));
+                    writer.WriteString(material.Type);
                 }
             }
         }
