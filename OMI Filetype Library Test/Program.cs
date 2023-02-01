@@ -43,7 +43,7 @@ namespace OMI_Filetype_Library_Test
                 case ".bin" when Path.GetFileNameWithoutExtension(filename).StartsWith("materials"):
                     return new MaterialFileReader();
                 default:
-                    return null;
+                    throw new NotSupportedException(Path.GetFileName(filename));
             }
         }
     }
