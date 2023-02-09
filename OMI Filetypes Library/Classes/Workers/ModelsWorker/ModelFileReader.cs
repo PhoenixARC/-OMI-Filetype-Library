@@ -80,7 +80,7 @@ namespace OMI.Workers.Model
                         model.Parts.Add(partName, part);
 
                     }
-                    container.models.Add(modelName, model);
+                    container.Models.Add(modelName, model);
                 }
             }
             return container;

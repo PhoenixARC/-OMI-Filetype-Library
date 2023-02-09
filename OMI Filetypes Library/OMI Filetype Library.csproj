@@ -67,6 +67,7 @@
     <Compile Include="Classes\Workers\ModelsWorker\ModelFileReader.cs" />
     <Compile Include="Classes\Formats\Model.cs" />
     <Compile Include="Classes\Workers\PckWorker\PckFileReader.cs" />
+    <Compile Include="Classes\Workers\PckWorker\PckFileWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

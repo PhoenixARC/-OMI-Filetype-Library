@@ -31,20 +31,20 @@ namespace OMI.Workers.Model
             }
         }
 
-        public void WriteToStream(Stream s)
+        public void WriteToStream(Stream stream)
         {
-            using (var writer = new EndiannessAwareBinaryWriter(s, Endianness.BigEndian))
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
             {
                 writer.Write(fileVersion);
-                writer.Write(container.models.Count);
+                writer.Write(container.Models.Count);
 
-                foreach (KeyValuePair<string, Formats.Model.Model> model in container.models)
+                foreach (Formats.Model.Model model in container.Models.Values)
                 {
-                    WriteString(writer, model.Key);
-                    writer.Write(model.Value.TextureSize.Width);
-                    writer.Write(model.Value.TextureSize.Height);
-                    writer.Write(model.Value.Parts.Count);
-                    foreach (ModelPart part in model.Value.Parts.Values)
+                    WriteString(writer, model.Name);
+                    writer.Write(model.TextureSize.Width);
+                    writer.Write(model.TextureSize.Height);
+                    writer.Write(model.Parts.Count);
+                    foreach (ModelPart part in model.Parts.Values)
                     {
                         WriteString(writer, part.Name);
                         writer.Write(part.TranslationX);
