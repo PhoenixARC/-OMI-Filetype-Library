@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Endianness.cs" />
+    <Compile Include="Classes\Formats\BehaviourFile.cs" />
     <Compile Include="Classes\Formats\FourjUserInterface.cs" />
     <Compile Include="Classes\Formats\Languages.cs" />
     <Compile Include="Classes\EndiannessAwareBinaryReader.cs" />
@@ -51,6 +52,8 @@
     <Compile Include="Classes\Workers\ArchiveWorker\ARCFileReader.cs" />
     <Compile Include="Classes\Workers\ArchiveWorker\ARCFileWriter.cs" />
     <Compile Include="Classes\Formats\Archive.cs" />
+    <Compile Include="Classes\Workers\Behaviour\BehavioursReader.cs" />
+    <Compile Include="Classes\Workers\Behaviour\BehavioursWriter.cs" />
     <Compile Include="Classes\Workers\ColorWorker\COLFileWriter.cs" />
     <Compile Include="Classes\Workers\ColorWorker\COLFileReader.cs" />
     <Compile Include="Classes\Formats\Color.cs" />
