@@ -50,8 +50,7 @@ namespace OMI.Workers.FUI
             using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, Endianness.LittleEndian))
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
-                
-                // ReadHeader
+
                 UIContainer.Header.Signature = reader.ReadInt64(Endianness.BigEndian);
                 UIContainer.Header.ContentSize = reader.ReadInt32();
                 UIContainer.Header.SwfFileName = reader.ReadString(0x40);
@@ -84,21 +83,23 @@ namespace OMI.Workers.FUI
                     tline.FrameCount = reader.ReadInt16();
                     tline.ActionIndex = reader.ReadInt16();
                     tline.ActionCount = reader.ReadInt16();
-                    tline.Rectangle.MinX = reader.ReadInt32();
-                    tline.Rectangle.MaxX = reader.ReadInt32();
-                    tline.Rectangle.MinY = reader.ReadInt32();
-                    tline.Rectangle.MaxY = reader.ReadInt32();
+                    tline.Rectangle.MinX = reader.ReadSingle();
+                    tline.Rectangle.MaxX = reader.ReadSingle();
+                    tline.Rectangle.MinY = reader.ReadSingle();
+                    tline.Rectangle.MaxY = reader.ReadSingle();
                     UIContainer.Timelines.Add(tline);
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiTimelineActionCount; i++)
                 {
-                    FuiTimelineAction tline = new FuiTimelineAction();
-                    tline.ActionType = reader.ReadInt16();
-                    tline.Unknown = reader.ReadInt16();
-                    tline.StringArg0 = reader.ReadString(0x40);
-                    tline.StringArg1 = reader.ReadString(0x40);
-                    UIContainer.TimelineActions.Add(tline);
+                    UIContainer.TimelineActions.Add(new FuiTimelineAction
+                    {
+                        ActionType = reader.ReadByte(),
+                        Unknown = reader.ReadByte(),
+                        FrameIndex = reader.ReadInt16(),
+                        StringArg0 = reader.ReadString(0x40),
+                        StringArg1 = reader.ReadString(0x40)
+                    });
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiShapeCount; i++)
@@ -178,7 +179,7 @@ namespace OMI.Workers.FUI
                 for (int i = 0; i < UIContainer.Header.fuiTimelineEventNameCount; i++)
                 {
                     FuiTimelineEventName tline = new FuiTimelineEventName();
-                    tline.EventName = reader.ReadString(0x40);
+                    tline.Name = reader.ReadString(0x40);
                     UIContainer.TimelineEventNames.Add(tline);
                 }
 
@@ -208,33 +209,36 @@ namespace OMI.Workers.FUI
                     tline.Unknown5 = reader.ReadInt32();
                     tline.Unknown6 = reader.ReadInt32();
                     tline.Unknown7 = reader.ReadInt32();
-                    tline.htmltextformat = reader.ReadString(0x100);
+                    tline.htmlSource = reader.ReadString(0x100);
                     UIContainer.Edittexts.Add(tline);
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiFontNameCount; i++)
                 {
-                    FuiFontName tline = new FuiFontName();
-                    tline.ID = reader.ReadInt32();
-                    tline.FontName = reader.ReadString(0x40);
+                    UIContainer.FontNames.Add(new FuiFontName
+                    {
+                        ID = reader.ReadInt32(),
+                        Name = reader.ReadString(0x40)
+                    });
                     reader.ReadBytes(0xc0); // unknown values
-                    UIContainer.FontNames.Add(tline);
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiSymbolCount; i++)
                 {
-                    FuiSymbol tline = new FuiSymbol();
-                    tline.SymbolName = reader.ReadString(0x40);
-                    tline.ObjectType = reader.ReadInt32();
-                    tline.Index = reader.ReadInt32();
-                    UIContainer.Symbols.Add(tline);
+                    UIContainer.Symbols.Add(new FuiSymbol
+                    {
+                        SymbolName = reader.ReadString(0x40),
+                        ObjectType = reader.ReadInt32(),
+                        Index = reader.ReadInt32()
+                    });
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiImportAssetCount; i++)
                 {
-                    FuiImportAsset tline = new FuiImportAsset();
-                    tline.Name = reader.ReadString(0x40);
-                    UIContainer.ImportAssets.Add(tline);
+                    UIContainer.ImportAssets.Add(new FuiImportAsset
+                    {
+                        Name = reader.ReadString(0x40)
+                    });
                 }
 
                 for (int i = 0; i < UIContainer.Header.fuiBitmapCount; i++)
