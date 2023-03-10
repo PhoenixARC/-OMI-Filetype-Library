@@ -8,6 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OMI</RootNamespace>
+    <LangVersion>latest</LangVersion>
     <AssemblyName>OMI Filetypes</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -45,6 +46,7 @@
     <Compile Include="Classes\Endianness.cs" />
     <Compile Include="Classes\Formats\BehaviourFile.cs" />
     <Compile Include="Classes\Formats\FourjUserInterface.cs" />
+    <Compile Include="Classes\Formats\GameRuleFile.cs" />
     <Compile Include="Classes\Formats\Languages.cs" />
     <Compile Include="Classes\EndiannessAwareBinaryReader.cs" />
     <Compile Include="Classes\EndiannessAwareBinaryWriter.cs" />
@@ -59,6 +61,13 @@
     <Compile Include="Classes\Formats\Color.cs" />
     <Compile Include="Classes\Workers\FourjUIWorker\FourjUIReader.cs" />
     <Compile Include="Classes\Workers\FourjUIWorker\FourjUIWriter.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\CRC32.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\GameRuleFileHeader.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\GameRuleFileReader.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\GameRuleFileWriter.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\LzxDecoder.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\RLE.cs" />
+    <Compile Include="Classes\Workers\GameRuleWorker\XMemDecompress.cs" />
     <Compile Include="Classes\Workers\IDataFormatReader.cs" />
     <Compile Include="Classes\Workers\IDataFormatWriter.cs" />
     <Compile Include="Classes\Workers\LanguageWorker\LOCFileReader.cs" />
@@ -73,6 +82,10 @@
     <Compile Include="Classes\Workers\PckWorker\PckFileWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib">
+      <Version>1.4.2</Version>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
