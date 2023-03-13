@@ -12,6 +12,7 @@ namespace OMI.Formats.Pck
         public List<FileData> Files { get; } = new List<FileData>();
 
         public const string XMLVersionString = "XMLVERSION";
+        public bool HasVerionString;
 
         public class PCKProperties : List<(string property, string value)>
         {
@@ -22,12 +23,12 @@ namespace OMI.Formats.Pck
 
             public bool HasProperty(string property)
             {
-                return GetProperty(property) != default;
+                return GetProperty(property) != default!;
             }
 
             public (string, string) GetProperty(string property)
             {
-                return this.FirstOrDefault(p => p.property.Equals(property));
+                return this.FirstOrDefault(p => p.property.Equals(property))!;
             }
 
             public T GetPropertyValue<T>(string property, Func<string, T> func)

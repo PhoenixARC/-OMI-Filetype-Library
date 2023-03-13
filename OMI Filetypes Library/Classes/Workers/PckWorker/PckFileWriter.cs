@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OMI.Formats.Pck;
-using OMI.Workers;
 
-namespace OMI.Classes.Workers.PckWorker
+namespace OMI.Workers.Pck
 {
     public class PckFileWriter : IDataFormatWriter
     {
@@ -43,8 +39,8 @@ namespace OMI.Classes.Workers.PckWorker
                     writer.Write(_propertyList.IndexOf(entry));
                     WriteString(writer, entry);
                 };
-                if (_propertyList.Contains(PckFile.XMLVersionString))
-                    writer.Write(0x1337); // :^)
+                if (_pckFile.HasVerionString)
+                    writer.Write(0b01001101010010010100101101010101); // :^)
 
 
                 writer.Write(_pckFile.Files.Count);
@@ -61,7 +57,7 @@ namespace OMI.Classes.Workers.PckWorker
                     foreach (var property in file.Properties)
                     {
                         if (!_propertyList.Contains(property.property))
-                            throw new Exception("Property not found in Look Up Table: " + property.property);
+                            throw new KeyNotFoundException("Property not found in Look Up Table: " + property.property);
                         writer.Write(_propertyList.IndexOf(property.property));
                         WriteString(writer, property.value);
                     }

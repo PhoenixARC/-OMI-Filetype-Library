@@ -21,7 +21,7 @@ using System.IO;
 using System.Text;
 using OMI.Formats.Pck;
 
-namespace OMI.Workers.PckWorker
+namespace OMI.Workers.Pck
 {
     public class PckFileReader : IDataFormatReader<PckFile>, IDataFormatReader
     {
@@ -59,15 +59,20 @@ namespace OMI.Workers.PckWorker
                 leaveOpen: true,
                 endianness: _endianness))
             {
-                pckFile = new PckFile(reader.ReadInt32());
-                IList<string> propertyList = ReadLookUpTable(reader);
+                int pck_type = reader.ReadInt32();
+                if (pck_type > 0x00_F0_00_00)
+                    throw new OverflowException(nameof(pck_type));
+                else if (pck_type < 3) throw new Exception(pck_type.ToString());
+
+                pckFile = new PckFile(pck_type);
+                IList<string> propertyList = ReadLookUpTable(reader, out pckFile.HasVerionString);
                 ReadFileEntries(pckFile, reader);
                 ReadFileContents(pckFile, propertyList, reader);
             }
             return pckFile;
         }
 
-        private IList<string> ReadLookUpTable(EndiannessAwareBinaryReader reader)
+        private IList<string> ReadLookUpTable(EndiannessAwareBinaryReader reader, out bool hasVerStr)
         {
             int count = reader.ReadInt32();
             var propertyList = new List<string>(count);
@@ -77,8 +82,10 @@ namespace OMI.Workers.PckWorker
                 string value = ReadString(reader);
                 propertyList.Insert(index, value);
             }
-            if (propertyList.Contains(PckFile.XMLVersionString))
+            if (hasVerStr = propertyList.Contains(PckFile.XMLVersionString))
+            {
                 Console.WriteLine(reader.ReadInt32()); // xml version num ??
+            }
             return propertyList;
         }
 
