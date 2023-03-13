@@ -79,7 +79,7 @@ namespace OMI.Workers.Model
         private void WriteString(EndiannessAwareBinaryWriter writer, string s)
         {
             writer.Write((short)s.Length);
-            writer.WriteString(s, Encoding.ASCII);
+            writer.WriteString(s);
         }
     }
 }

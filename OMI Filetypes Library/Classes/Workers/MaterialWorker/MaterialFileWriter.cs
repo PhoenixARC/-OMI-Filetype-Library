@@ -12,7 +12,7 @@ using OMI.Workers;
 */
 namespace OMI.Workers.Material
 {
-    internal class MaterialFileWriter : IDataFormatWriter
+    public class MaterialFileWriter : IDataFormatWriter
     {
         private readonly MaterialContainer container;
 

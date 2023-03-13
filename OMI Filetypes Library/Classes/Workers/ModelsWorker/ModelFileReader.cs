@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.IO;
 using OMI.Formats.Model;
+using System.Diagnostics;
 /*
 * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
 * https://github.com/MattN-L
@@ -51,6 +52,13 @@ namespace OMI.Workers.Model
                     {
                         ModelPart part = new ModelPart();
                         string partName = ReadString(reader);
+
+                        if (version > 1)
+                        {
+                            string partParentName = ReadString(reader);
+                            Debug.WriteLineIf(partParentName.Length > 0, partParentName, category: nameof(ModelFileReader.FromStream));
+                        }
+
                         part.TranslationX = reader.ReadSingle();
                         part.TranslationY = reader.ReadSingle();
                         part.TranslationZ = reader.ReadSingle();

@@ -13,6 +13,14 @@ namespace OMI.Formats.Model
     public class ModelContainer
     {
         public Dictionary<string, Model> Models => new Dictionary<string, Model>();
+
+        /// <exception cref="ModelNotFoundException"></exception>
+        Model GetModelByName(string name)
+        {
+            if (!Models.ContainsKey(name))
+                throw new ModelNotFoundException(nameof(name));
+            return Models[name];
+        }
     }
 
     public class Model
