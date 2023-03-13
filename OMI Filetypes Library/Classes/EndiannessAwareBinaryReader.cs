@@ -92,7 +92,8 @@ namespace OMI
         public string ReadString(int length) => ReadString(length, _encoding);
         public string ReadString(int length, Encoding encoding)
         {
-            return encoding.GetString(ReadBytes(length), 0, length).Trim('\0');
+            int actualLength = encoding is UnicodeEncoding ? length << 1 : length;
+            return encoding.GetString(ReadBytes(actualLength), 0, actualLength).Trim('\0');
         }
 
         private byte[] ReadForEndianness(int bytesToRead, Endianness endianness)
