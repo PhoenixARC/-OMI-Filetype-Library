@@ -41,9 +41,9 @@ namespace OMI.Formats.Material
 
         public static readonly string[] ValidMaterialTypes = new string[]
         {
-            "entity",
             "entity_alphatest",
             "entity_alphatest_change_color",
+            "entity_change_color",
             "entity_emissive_alpha",
             "entity_emissive_alpha_only",
         };
