@@ -17,7 +17,7 @@ namespace OMI.Workers.Language
 
         private LOCFileWriter(LOCFile file, int type)
         {
-            _ = _locfile ?? throw new ArgumentNullException(nameof(_locfile));
+            _ = file ?? throw new ArgumentNullException(nameof(file));
             _locfile = file;
             _type = type;
         }
