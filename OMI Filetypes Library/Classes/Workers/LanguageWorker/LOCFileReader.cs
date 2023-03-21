@@ -75,7 +75,7 @@ namespace OMI.Workers.Language
 
         private string ReadString(EndiannessAwareBinaryReader reader)
         {
-            int length = reader.ReadInt16();
+            int length = reader.ReadUInt16();
             return reader.ReadString(length, Encoding.UTF8);
         }
     }

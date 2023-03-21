@@ -250,3 +250,5 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+/OMI Filetypes/Classes/Formats/Pack.cs
+/OMI Filetypes/Classes/Formats/GameRuleFile.cs
