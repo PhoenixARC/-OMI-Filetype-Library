@@ -92,7 +92,7 @@ namespace OMI.Workers.Language
 
         private void WriteString(EndiannessAwareBinaryWriter writer, string s)
         {
-            writer.Write(Convert.ToInt16(writer.EncodingScheme.GetByteCount(s)));
+            writer.Write(Convert.ToUInt16(writer.EncodingScheme.GetByteCount(s)));
             writer.WriteString(s);
         }
     }
