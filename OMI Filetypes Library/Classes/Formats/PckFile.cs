@@ -125,19 +125,19 @@ namespace OMI.Formats.Pck
 
             public FileType Filetype { get; set; }
             public byte[] Data => _data;
-            public int Size => _data is null ? 0 : _data.Length;
+            public int Size => _data?.Length ?? 0;
             public PCKProperties Properties { get; } = new PCKProperties();
 
             private string filename;
             private byte[] _data = new byte[0];
 
-            public FileData(string name, FileType type)
+            public FileData(string filename, FileType filetype)
             {
-                Filetype = type;
-                Filename = name;
+                Filetype = filetype;
+                Filename = filename;
             }
 
-            public FileData(string name, FileType type, int dataSize) : this(name, type)
+            public FileData(string filename, FileType filetype, int dataSize) : this(filename, filetype)
             {
                 _data = new byte[dataSize];
             }
@@ -173,50 +173,63 @@ namespace OMI.Formats.Pck
         }
 
         /// <summary>
-        /// Creates and adds new <see cref="FileData"/> object.
+        /// Create and add new <see cref="FileData"/> object.
         /// </summary>
-        /// <param name="name">Filename</param>
-        /// <param name="type">Filetype</param>
+        /// <param name="filename">Filename</param>
+        /// <param name="filetype">Filetype</param>
         /// <returns>Added <see cref="FileData"/> object</returns>
-        public FileData CreateNew(string name, FileData.FileType type)
+        public FileData CreateNewFile(string filename, FileData.FileType filetype)
         {
-            var file = new FileData(name, type);
+            var file = new FileData(filename, filetype);
             Files.Add(file);
             return file;
         }
 
         /// <summary>
-        /// Checks wether a file with <paramref name="filepath"/> and <paramref name="type"/> exists
+        /// Create, add and initialize new <see cref="FileData"/> object.
         /// </summary>
-        /// <param name="filepath">Path to the file in the pck</param>
+        /// <param name="filename">Filename</param>
+        /// <param name="filetype">Filetype</param>
+        /// <returns>Initialized <see cref="FileData"/> object</returns>
+        public FileData CreateNewFile(string filename, FileData.FileType filetype, Func<byte[]> dataInitializier)
+        {
+            var file = CreateNewFile(filename, filetype);
+            file.SetData(dataInitializier?.Invoke());
+            return file;
+        }
+
+        /// <summary>
+        /// Checks wether a file with <paramref name="filename"/> and <paramref name="type"/> exists
+        /// </summary>
+        /// <param name="filename">Path to the file in the pck</param>
         /// <param name="type">Type of the file <see cref="FileData.FileType"/></param>
         /// <returns>True when file exists, otherwise false </returns>
-        public bool HasFile(string filepath, FileData.FileType type)
+        public bool HasFile(string filename, FileData.FileType type)
         {
-            return GetFile(filepath, type) is FileData;
+            return GetFile(filename, type) is FileData;
         }
 
         /// <summary>
-        /// Gets the first file that Equals <paramref name="filepath"/> and <paramref name="type"/>
+        /// Gets the first file that Equals <paramref name="filename"/> and <paramref name="type"/>
         /// </summary>
-        /// <param name="filepath">Path to the file in the pck</param>
+        /// <param name="filename">Path to the file in the pck</param>
         /// <param name="type">Type of the file <see cref="FileData.FileType"/></param>
         /// <returns>FileData if found, otherwise null</returns>
-        public FileData GetFile(string filepath, FileData.FileType type)
+        public FileData GetFile(string filename, FileData.FileType type)
         {
-            return Files.FirstOrDefault(file => file.Filename.Equals(filepath) && file.Filetype.Equals(type));
+            return Files.FirstOrDefault(file => file.Filename.Equals(filename) && file.Filetype.Equals(type));
         }
 
         /// <summary>
-        /// Tries to get a file with <paramref name="filepath"/> and <paramref name="type"/>.
+        /// Tries to get a file with <paramref name="filename"/> and <paramref name="type"/>.
         /// </summary>
-        /// <param name="filepath">Path to the file in the pck</param>
+        /// <param name="filename">Path to the file in the pck</param>
         /// <param name="type">Type of the file <see cref="FileData.FileType"/></param>
         /// <param name="file">If succeeded <paramref name="file"/> will be non-null, otherwise null</param>
         /// <returns>True if succeeded, otherwise false</returns>
-        public bool TryGetFile(string filepath, FileData.FileType type, out FileData file)
+        public bool TryGetFile(string filename, FileData.FileType type, out FileData file)
         {
-            file = GetFile(filepath, type);
+            file = GetFile(filename, type);
             return file is FileData;
         }
     }
