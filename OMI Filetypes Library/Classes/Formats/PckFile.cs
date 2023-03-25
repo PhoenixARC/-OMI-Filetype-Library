@@ -169,6 +169,8 @@ namespace OMI.Formats.Pck
                     LUT.Add(pair.property);
             })
             );
+            if (HasVerionString)
+                LUT.Add(XMLVersionString);
             return LUT;
         }
 
