@@ -16,6 +16,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
 **/
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -122,6 +123,14 @@ namespace OMI
         {
             byte[] buffer = encoding.GetBytes(s);
             Write(buffer);
+        }
+
+        public void Empty<T>(List<T> list, Action<EndiannessAwareBinaryWriter, T> writeItem)
+        {
+            foreach (var item in list)
+            {
+                writeItem.Invoke(this, item);
+            }
         }
     }
 }

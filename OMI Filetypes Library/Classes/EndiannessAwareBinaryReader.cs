@@ -16,6 +16,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
 **/
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -106,6 +107,14 @@ namespace OMI
                 Array.Reverse(bytesRead);
             }
             return bytesRead;
+        }
+
+        public void Fill<T>(List<T> list, Func<EndiannessAwareBinaryReader, T> readItemFunc)
+        {
+            for (int i = 0; i < list.Capacity; i++)
+            {
+                list.Add(readItemFunc(this));
+            }
         }
     }
 }

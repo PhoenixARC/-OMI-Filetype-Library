@@ -62,13 +62,13 @@ namespace OMI.Workers.FUI
                 writer.Write(_UIContainer.Edittexts.Count);
                 writer.Write(_UIContainer.Symbols.Count);
                 writer.Write(_UIContainer.Bitmaps.Count);
-                writer.Write(_UIContainer.Header.imagesSize);
+                writer.Write(0);
                 writer.Write(_UIContainer.FontNames.Count);
                 writer.Write(_UIContainer.ImportAssets.Count);
-                writer.Write(_UIContainer.Header.frameSize.MinX);
-                writer.Write(_UIContainer.Header.frameSize.MaxX);
-                writer.Write(_UIContainer.Header.frameSize.MinY);
-                writer.Write(_UIContainer.Header.frameSize.MaxY);
+                writer.Write(_UIContainer.Header.FrameSize.MinX);
+                writer.Write(_UIContainer.Header.FrameSize.MaxX);
+                writer.Write(_UIContainer.Header.FrameSize.MinY);
+                writer.Write(_UIContainer.Header.FrameSize.MaxY);
 
                 foreach (FuiTimeline timeline in _UIContainer.Timelines)
                 {
@@ -103,7 +103,7 @@ namespace OMI.Workers.FUI
                 foreach (FuiShapeComponent shapeComponent in _UIContainer.ShapeComponents)
                 {
                     writer.Write(shapeComponent.FillInfo.Type);
-                    writer.Write(shapeComponent.FillInfo.Color.RGBA);
+                    writer.Write(FuiRGBA.GetColor(shapeComponent.FillInfo.Color));
                     writer.Write(shapeComponent.FillInfo.BitmapIndex);
                     writer.Write(shapeComponent.FillInfo.Matrix.ScaleX);
                     writer.Write(shapeComponent.FillInfo.Matrix.ScaleY);
@@ -133,12 +133,12 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.Index);
                     writer.Write(timelineEvent.Unknown1);
                     writer.Write(timelineEvent.NameIndex);
-                    writer.Write(timelineEvent.matrix.ScaleX);
-                    writer.Write(timelineEvent.matrix.ScaleY);
-                    writer.Write(timelineEvent.matrix.RotateSkew0);
-                    writer.Write(timelineEvent.matrix.RotateSkew1);
-                    writer.Write(timelineEvent.matrix.TranslationX);
-                    writer.Write(timelineEvent.matrix.TranslationY);
+                    writer.Write(timelineEvent.Matrix.ScaleX);
+                    writer.Write(timelineEvent.Matrix.ScaleY);
+                    writer.Write(timelineEvent.Matrix.RotateSkew0);
+                    writer.Write(timelineEvent.Matrix.RotateSkew1);
+                    writer.Write(timelineEvent.Matrix.TranslationX);
+                    writer.Write(timelineEvent.Matrix.TranslationY);
                     writer.Write(timelineEvent.ColorTransform.RedMultTerm);
                     writer.Write(timelineEvent.ColorTransform.GreenMultTerm);
                     writer.Write(timelineEvent.ColorTransform.BlueMultTerm);
@@ -147,11 +147,11 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.ColorTransform.GreenAddTerm);
                     writer.Write(timelineEvent.ColorTransform.BlueAddTerm);
                     writer.Write(timelineEvent.ColorTransform.AlphaAddTerm);
-                    writer.Write(timelineEvent.Color.RGBA);
+                    writer.Write(FuiRGBA.GetColor(timelineEvent.Color));
                 }
-                foreach (FuiTimelineEventName eventName in _UIContainer.TimelineEventNames)
+                foreach (var eventName in _UIContainer.TimelineEventNames)
                 {
-                    writer.WriteString(eventName.Name, 0x40);
+                    writer.WriteString(eventName, 0x40);
                 }
                 foreach (FuiReference reference in _UIContainer.References)
                 {
@@ -168,7 +168,7 @@ namespace OMI.Workers.FUI
                     writer.Write(edittext.Rectangle.MaxY);
                     writer.Write(edittext.FontID);
                     writer.Write(edittext.Unknown1);
-                    writer.Write(edittext.Color.RGBA);
+                    writer.Write(FuiRGBA.GetColor(edittext.Color));
                     writer.Write(edittext.Unknown2);
                     writer.Write(edittext.Unknown3);
                     writer.Write(edittext.Unknown4);
@@ -185,17 +185,17 @@ namespace OMI.Workers.FUI
                 }
                 foreach (FuiSymbol symbol in _UIContainer.Symbols)
                 {
-                    writer.WriteString(symbol.SymbolName, 0x40);
+                    writer.WriteString(symbol.Name, 0x40);
                     writer.Write(symbol.ObjectType);
                     writer.Write(symbol.Index);
                 }
-                foreach (FuiImportAsset importAsset in _UIContainer.ImportAssets)
+                foreach (var importAssetName in _UIContainer.ImportAssets)
                 {
-                    writer.WriteString(importAsset.Name, 0x40);
+                    writer.WriteString(importAssetName, 0x40);
                 }
                 foreach (FuiBitmap bitmap in _UIContainer.Bitmaps)
                 {
-                    writer.Write(bitmap.Unknown0);
+                    writer.Write(bitmap.SymbolIndex);
                     writer.Write(bitmap.ImageFormat);
                     writer.Write(bitmap.Width);
                     writer.Write(bitmap.Height);
@@ -204,11 +204,16 @@ namespace OMI.Workers.FUI
                     writer.Write(bitmap.ZlibDataOffset);
                     writer.Write(bitmap.Unknown1);
                 }
-                foreach (byte[] imgData in _UIContainer.ImagesData)
+                foreach (var imgData in _UIContainer.ImagesData)
                 {
                     writer.Write(imgData);
                 }
             }
+        }
+
+        private void WriteByte(Stream stream, byte b)
+        {
+            stream.WriteByte(b);
         }
     }
 }
