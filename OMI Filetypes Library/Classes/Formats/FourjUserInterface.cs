@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -37,16 +36,10 @@ namespace OMI.Formats.FUI
         {
             Header = new Components.FuiHeader();
         }
-
-        public override string ToString()
-        {
-            return string.Format("Header: {0}", Header);
-        }
     }
+
     namespace Components
     {
-        #region Base FUI Structures
-
         public class FuiHeader
         {
             public static readonly byte DefaultVersion = 1;
@@ -80,8 +73,9 @@ namespace OMI.Formats.FUI
 
         public class FuiTimelineAction
         {
-            public short ActionType;
-            public short Unknown;
+            public byte ActionType;
+            public byte Unknown;
+            public short FrameIndex;
             public string StringArg0;
             public string StringArg1;
         }
@@ -139,6 +133,7 @@ namespace OMI.Formats.FUI
             public string Name;
             public int Index;
         }
+
         public class FuiEdittext
         {
             public int Unknown0;
@@ -155,7 +150,7 @@ namespace OMI.Formats.FUI
             /// <summary>
             /// Max size: 0x100
             /// </summary>
-            public string htmltextformat;
+            public string htmlSource;
         }
         
         public class FuiFontName
@@ -164,7 +159,7 @@ namespace OMI.Formats.FUI
             /// <summary>
             /// Max size: 0x40
             /// </summary>
-            public string FontName;
+            public string Name;
         }
         
         public class FuiSymbol
@@ -188,10 +183,6 @@ namespace OMI.Formats.FUI
             public int ZlibDataOffset;
             public int Unknown1;
         }
-
-        #endregion
-
-        #region Structures used in FUI elements
 
         public class FuiRect
         {
@@ -253,7 +244,7 @@ namespace OMI.Formats.FUI
             public FuiMatrix Matrix = new FuiMatrix();
         }
         
-        public enum fuiObject_eFuiObjectType
+        internal enum fuiObject_eFuiObjectType
         {
             STAGE = 0,
             SHAPE = 1,
@@ -264,6 +255,5 @@ namespace OMI.Formats.FUI
             CODEGENRECT = 6,
         }
 
-        #endregion
     }
 }

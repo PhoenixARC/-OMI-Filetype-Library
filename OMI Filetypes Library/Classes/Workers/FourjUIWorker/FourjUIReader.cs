@@ -137,7 +137,7 @@ namespace OMI.Workers.FUI
         {
             FuiFontName fontName = new FuiFontName();
             fontName.ID = reader.ReadInt32();
-            fontName.FontName = reader.ReadString(0x40);
+            fontName.Name = reader.ReadString(0x40);
             reader.ReadBytes(0xc0); // unknown values
             return fontName;
         }
@@ -159,7 +159,7 @@ namespace OMI.Workers.FUI
             edittext.Unknown5 = reader.ReadInt32();
             edittext.Unknown6 = reader.ReadInt32();
             edittext.Unknown7 = reader.ReadInt32();
-            edittext.htmltextformat = reader.ReadString(0x100);
+            edittext.htmlSource = reader.ReadString(0x100);
             return edittext;
         }
 
@@ -269,8 +269,9 @@ namespace OMI.Workers.FUI
         private FuiTimelineAction ReadTimelineAction(EndiannessAwareBinaryReader reader)
         {
             FuiTimelineAction timelineAction = new FuiTimelineAction();
-            timelineAction.ActionType = reader.ReadInt16();
-            timelineAction.Unknown = reader.ReadInt16();
+            timelineAction.ActionType = reader.ReadByte();
+            timelineAction.Unknown = reader.ReadByte();
+            timelineAction.FrameIndex = reader.ReadInt16();
             timelineAction.StringArg0 = reader.ReadString(0x40);
             timelineAction.StringArg1 = reader.ReadString(0x40);
             return timelineAction;

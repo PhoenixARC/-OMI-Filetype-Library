@@ -36,7 +36,10 @@ namespace OMI.Workers.FUI
 
         public void WriteToFile(string fileName)
         {
-
+            using (var fs = File.OpenWrite(fileName))
+            {
+                WriteToStream(fs);
+            }
         }
 
         public void WriteToStream(Stream stream)
@@ -67,145 +70,139 @@ namespace OMI.Workers.FUI
                 writer.Write(_UIContainer.Header.FrameSize.MinY);
                 writer.Write(_UIContainer.Header.FrameSize.MaxY);
 
-                foreach (FuiTimeline tl in _UIContainer.Timelines)
+                foreach (FuiTimeline timeline in _UIContainer.Timelines)
                 {
-                    writer.Write(tl.SymbolIndex);
-                    writer.Write(tl.FrameIndex);
-                    writer.Write(tl.FrameCount);
-                    writer.Write(tl.ActionIndex);
-                    writer.Write(tl.ActionCount);
-                    writer.Write(tl.Rectangle.MinX);
-                    writer.Write(tl.Rectangle.MaxX);
-                    writer.Write(tl.Rectangle.MinY);
-                    writer.Write(tl.Rectangle.MaxY);
+                    writer.Write(timeline.SymbolIndex);
+                    writer.Write(timeline.FrameIndex);
+                    writer.Write(timeline.FrameCount);
+                    writer.Write(timeline.ActionIndex);
+                    writer.Write(timeline.ActionCount);
+                    writer.Write(timeline.Rectangle.MinX);
+                    writer.Write(timeline.Rectangle.MaxX);
+                    writer.Write(timeline.Rectangle.MinY);
+                    writer.Write(timeline.Rectangle.MaxY);
                 }
-                foreach (FuiTimelineAction tl in _UIContainer.TimelineActions)
+                foreach (FuiTimelineAction timelineAction in _UIContainer.TimelineActions)
                 {
-                    writer.Write(tl.ActionType);
-                    writer.Write(tl.Unknown);
-                    writer.WriteString(tl.StringArg0, 0x40, Encoding.ASCII);
-                    writer.WriteString(tl.StringArg1, 0x40, Encoding.ASCII);
+                    writer.Write(timelineAction.ActionType);
+                    writer.Write(timelineAction.Unknown);
+                    writer.Write(timelineAction.FrameIndex);
+                    writer.WriteString(timelineAction.StringArg0, 0x40);
+                    writer.WriteString(timelineAction.StringArg1, 0x40);
                 }
-                foreach (FuiShape tl in _UIContainer.Shapes)
+                foreach (FuiShape shape in _UIContainer.Shapes)
                 {
-                    writer.Write(tl.Unknown);
-                    writer.Write(tl.ShapeComponentIndex);
-                    writer.Write(tl.ShapeComponentCount);
-                    writer.Write(tl.Rectangle.MinX);
-                    writer.Write(tl.Rectangle.MaxX);
-                    writer.Write(tl.Rectangle.MinY);
-                    writer.Write(tl.Rectangle.MaxY);
+                    writer.Write(shape.Unknown);
+                    writer.Write(shape.ShapeComponentIndex);
+                    writer.Write(shape.ShapeComponentCount);
+                    writer.Write(shape.Rectangle.MinX);
+                    writer.Write(shape.Rectangle.MaxX);
+                    writer.Write(shape.Rectangle.MinY);
+                    writer.Write(shape.Rectangle.MaxY);
                 }
-                foreach (FuiShapeComponent tl in _UIContainer.ShapeComponents)
+                foreach (FuiShapeComponent shapeComponent in _UIContainer.ShapeComponents)
                 {
-                    writer.Write(tl.FillInfo.Type);
-                    WriteByte(stream, tl.FillInfo.Color.R);
-                    WriteByte(stream, tl.FillInfo.Color.G);
-                    WriteByte(stream, tl.FillInfo.Color.B);
-                    WriteByte(stream, tl.FillInfo.Color.A);
-                    writer.Write(tl.FillInfo.BitmapIndex);
-                    writer.Write(tl.FillInfo.Matrix.ScaleX);
-                    writer.Write(tl.FillInfo.Matrix.ScaleY);
-                    writer.Write(tl.FillInfo.Matrix.RotateSkew0);
-                    writer.Write(tl.FillInfo.Matrix.RotateSkew1);
-                    writer.Write(tl.FillInfo.Matrix.TranslationX);
-                    writer.Write(tl.FillInfo.Matrix.TranslationY);
-                    writer.Write(tl.VertIndex);
-                    writer.Write(tl.VertCount);
+                    writer.Write(shapeComponent.FillInfo.Type);
+                    writer.Write(FuiRGBA.GetColor(shapeComponent.FillInfo.Color));
+                    writer.Write(shapeComponent.FillInfo.BitmapIndex);
+                    writer.Write(shapeComponent.FillInfo.Matrix.ScaleX);
+                    writer.Write(shapeComponent.FillInfo.Matrix.ScaleY);
+                    writer.Write(shapeComponent.FillInfo.Matrix.RotateSkew0);
+                    writer.Write(shapeComponent.FillInfo.Matrix.RotateSkew1);
+                    writer.Write(shapeComponent.FillInfo.Matrix.TranslationX);
+                    writer.Write(shapeComponent.FillInfo.Matrix.TranslationY);
+                    writer.Write(shapeComponent.VertIndex);
+                    writer.Write(shapeComponent.VertCount);
                 }
-                foreach (FuiVert tl in _UIContainer.Verts)
+                foreach (FuiVert vert in _UIContainer.Verts)
                 {
-                    writer.Write(tl.X);
-                    writer.Write(tl.Y);
+                    writer.Write(vert.X);
+                    writer.Write(vert.Y);
                 }
-                foreach (FuiTimelineFrame tl in _UIContainer.TimelineFrames)
+                foreach (FuiTimelineFrame timelineFrame in _UIContainer.TimelineFrames)
                 {
-                    writer.WriteString(tl.FrameName, 0x40);
-                    writer.Write(tl.EventIndex);
-                    writer.Write(tl.EventCount);
+                    writer.WriteString(timelineFrame.FrameName, 0x40);
+                    writer.Write(timelineFrame.EventIndex);
+                    writer.Write(timelineFrame.EventCount);
                 }
-                foreach (FuiTimelineEvent tl in _UIContainer.TimelineEvents)
+                foreach (FuiTimelineEvent timelineEvent in _UIContainer.TimelineEvents)
                 {
-                    writer.Write(tl.EventType);
-                    writer.Write(tl.ObjectType);
-                    writer.Write(tl.Unknown0);
-                    writer.Write(tl.Index);
-                    writer.Write(tl.Unknown1);
-                    writer.Write(tl.NameIndex);
-                    writer.Write(tl.Matrix.ScaleX);
-                    writer.Write(tl.Matrix.ScaleY);
-                    writer.Write(tl.Matrix.RotateSkew0);
-                    writer.Write(tl.Matrix.RotateSkew1);
-                    writer.Write(tl.Matrix.TranslationX);
-                    writer.Write(tl.Matrix.TranslationY);
-                    writer.Write(tl.ColorTransform.RedMultTerm);
-                    writer.Write(tl.ColorTransform.GreenMultTerm);
-                    writer.Write(tl.ColorTransform.BlueMultTerm);
-                    writer.Write(tl.ColorTransform.AlphaMultTerm);
-                    writer.Write(tl.ColorTransform.RedAddTerm);
-                    writer.Write(tl.ColorTransform.GreenAddTerm);
-                    writer.Write(tl.ColorTransform.BlueAddTerm);
-                    writer.Write(tl.ColorTransform.AlphaAddTerm);
-                    //OutputBytes.AddRange(new byte[] { 0xff, 0xff, 0xff, 0xff});
-                    WriteByte(stream, tl.Color.R);
-                    WriteByte(stream, tl.Color.G);
-                    WriteByte(stream, tl.Color.B);
-                    WriteByte(stream, tl.Color.A);
+                    writer.Write(timelineEvent.EventType);
+                    writer.Write(timelineEvent.ObjectType);
+                    writer.Write(timelineEvent.Unknown0);
+                    writer.Write(timelineEvent.Index);
+                    writer.Write(timelineEvent.Unknown1);
+                    writer.Write(timelineEvent.NameIndex);
+                    writer.Write(timelineEvent.Matrix.ScaleX);
+                    writer.Write(timelineEvent.Matrix.ScaleY);
+                    writer.Write(timelineEvent.Matrix.RotateSkew0);
+                    writer.Write(timelineEvent.Matrix.RotateSkew1);
+                    writer.Write(timelineEvent.Matrix.TranslationX);
+                    writer.Write(timelineEvent.Matrix.TranslationY);
+                    writer.Write(timelineEvent.ColorTransform.RedMultTerm);
+                    writer.Write(timelineEvent.ColorTransform.GreenMultTerm);
+                    writer.Write(timelineEvent.ColorTransform.BlueMultTerm);
+                    writer.Write(timelineEvent.ColorTransform.AlphaMultTerm);
+                    writer.Write(timelineEvent.ColorTransform.RedAddTerm);
+                    writer.Write(timelineEvent.ColorTransform.GreenAddTerm);
+                    writer.Write(timelineEvent.ColorTransform.BlueAddTerm);
+                    writer.Write(timelineEvent.ColorTransform.AlphaAddTerm);
+                    writer.Write(FuiRGBA.GetColor(timelineEvent.Color));
                 }
                 foreach (var eventName in _UIContainer.TimelineEventNames)
                 {
                     writer.WriteString(eventName, 0x40);
                 }
-                foreach (FuiReference tl in _UIContainer.References)
+                foreach (FuiReference reference in _UIContainer.References)
                 {
-                    writer.Write(tl.SymbolIndex);
-                    writer.WriteString(tl.Name, 0x40);
-                    writer.Write(tl.Index);
+                    writer.Write(reference.SymbolIndex);
+                    writer.WriteString(reference.Name, 0x40);
+                    writer.Write(reference.Index);
                 }
-                foreach (FuiEdittext tl in _UIContainer.Edittexts)
+                foreach (FuiEdittext edittext in _UIContainer.Edittexts)
                 {
-                    writer.Write(tl.Unknown0);
-                    writer.Write(tl.Rectangle.MinX);
-                    writer.Write(tl.Rectangle.MaxX);
-                    writer.Write(tl.Rectangle.MinY);
-                    writer.Write(tl.Rectangle.MaxY);
-                    writer.Write(tl.FontID);
-                    writer.Write(tl.Unknown1);
-                    writer.Write(FuiRGBA.GetColor(tl.Color));
-                    writer.Write(tl.Unknown2);
-                    writer.Write(tl.Unknown3);
-                    writer.Write(tl.Unknown4);
-                    writer.Write(tl.Unknown5);
-                    writer.Write(tl.Unknown6);
-                    writer.Write(tl.Unknown7);
-                    writer.WriteString(tl.htmltextformat, 0x100);
+                    writer.Write(edittext.Unknown0);
+                    writer.Write(edittext.Rectangle.MinX);
+                    writer.Write(edittext.Rectangle.MaxX);
+                    writer.Write(edittext.Rectangle.MinY);
+                    writer.Write(edittext.Rectangle.MaxY);
+                    writer.Write(edittext.FontID);
+                    writer.Write(edittext.Unknown1);
+                    writer.Write(FuiRGBA.GetColor(edittext.Color));
+                    writer.Write(edittext.Unknown2);
+                    writer.Write(edittext.Unknown3);
+                    writer.Write(edittext.Unknown4);
+                    writer.Write(edittext.Unknown5);
+                    writer.Write(edittext.Unknown6);
+                    writer.Write(edittext.Unknown7);
+                    writer.WriteString(edittext.htmlSource, 0x100);
                 }
-                foreach (FuiFontName tl in _UIContainer.FontNames)
+                foreach (FuiFontName fontName in _UIContainer.FontNames)
                 {
-                    writer.Write(tl.ID);
-                    writer.WriteString(tl.FontName, 0x40);
+                    writer.Write(fontName.ID);
+                    writer.WriteString(fontName.Name, 0x40);
                     writer.Write(new byte[0xC0]);
                 }
-                foreach (FuiSymbol tl in _UIContainer.Symbols)
+                foreach (FuiSymbol symbol in _UIContainer.Symbols)
                 {
-                    writer.WriteString(tl.Name, 0x40);
-                    writer.Write(tl.ObjectType);
-                    writer.Write(tl.Index);
+                    writer.WriteString(symbol.Name, 0x40);
+                    writer.Write(symbol.ObjectType);
+                    writer.Write(symbol.Index);
                 }
                 foreach (var importAssetName in _UIContainer.ImportAssets)
                 {
                     writer.WriteString(importAssetName, 0x40);
                 }
-                foreach (FuiBitmap tl in _UIContainer.Bitmaps)
+                foreach (FuiBitmap bitmap in _UIContainer.Bitmaps)
                 {
-                    writer.Write(tl.SymbolIndex);
-                    writer.Write(tl.ImageFormat);
-                    writer.Write(tl.Width);
-                    writer.Write(tl.Height);
-                    writer.Write(tl.Offset);
-                    writer.Write(tl.Size);
-                    writer.Write(tl.ZlibDataOffset);
-                    writer.Write(tl.Unknown1);
+                    writer.Write(bitmap.SymbolIndex);
+                    writer.Write(bitmap.ImageFormat);
+                    writer.Write(bitmap.Width);
+                    writer.Write(bitmap.Height);
+                    writer.Write(bitmap.Offset);
+                    writer.Write(bitmap.Size);
+                    writer.Write(bitmap.ZlibDataOffset);
+                    writer.Write(bitmap.Unknown1);
                 }
                 foreach (var imgData in _UIContainer.ImagesData)
                 {

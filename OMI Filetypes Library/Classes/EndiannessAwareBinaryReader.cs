@@ -74,6 +74,8 @@ namespace OMI
 
         public override ulong ReadUInt64() => ReadUInt64(_endianness);
 
+        public override float ReadSingle() => ReadSingle(_endianness);
+
         public short ReadInt16(Endianness endianness) => BitConverter.ToInt16(ReadForEndianness(sizeof(short), endianness), 0);
 
         public int ReadInt32(Endianness endianness) => BitConverter.ToInt32(ReadForEndianness(sizeof(int), endianness), 0);
@@ -85,6 +87,8 @@ namespace OMI
         public uint ReadUInt32(Endianness endianness) => BitConverter.ToUInt32(ReadForEndianness(sizeof(uint), endianness), 0);
 
         public ulong ReadUInt64(Endianness endianness) => BitConverter.ToUInt64(ReadForEndianness(sizeof(ulong), endianness), 0);
+
+        public float ReadSingle(Endianness endianness) => BitConverter.ToSingle(ReadForEndianness(sizeof(float), endianness), 0);
 
         public string ReadString(int length) => ReadString(length, _encoding);
         public string ReadString(int length, Encoding encoding)
