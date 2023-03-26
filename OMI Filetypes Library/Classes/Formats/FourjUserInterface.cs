@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
@@ -23,32 +24,18 @@ namespace OMI.Formats.FUI
         public List<Components.FuiVert> Verts;
         public List<Components.FuiTimelineFrame> TimelineFrames;
         public List<Components.FuiTimelineEvent> TimelineEvents;
-        public List<Components.FuiTimelineEventName> TimelineEventNames;
+        public List<string> TimelineEventNames;
         public List<Components.FuiReference> References;
         public List<Components.FuiEdittext> Edittexts;
         public List<Components.FuiFontName> FontNames;
         public List<Components.FuiSymbol> Symbols;
-        public List<Components.FuiImportAsset> ImportAssets;
+        public List<string> ImportAssets;
         public List<Components.FuiBitmap> Bitmaps;
         public List<byte[]> ImagesData = new List<byte[]>();
 
         public FourjUserInterface()
         {
             Header = new Components.FuiHeader();
-            Timelines = new List<Components.FuiTimeline>();
-            TimelineActions = new List<Components.FuiTimelineAction>();
-            Shapes = new List<Components.FuiShape>();
-            ShapeComponents = new List<Components.FuiShapeComponent>();
-            Verts = new List<Components.FuiVert>();
-            TimelineFrames = new List<Components.FuiTimelineFrame>();
-            TimelineEvents = new List<Components.FuiTimelineEvent>();
-            TimelineEventNames = new List<Components.FuiTimelineEventName>();
-            References = new List<Components.FuiReference>();
-            Edittexts = new List<Components.FuiEdittext>();
-            FontNames = new List<Components.FuiFontName>();
-            Symbols = new List<Components.FuiSymbol>();
-            ImportAssets = new List<Components.FuiImportAsset>();
-            Bitmaps = new List<Components.FuiBitmap>();
         }
 
         public override string ToString()
@@ -70,31 +57,17 @@ namespace OMI.Formats.FUI
             public long Signature;
             public int ContentSize;
             public string SwfFileName;
-            public int fuiTimelineCount;
-            public int fuiTimelineEventNameCount;
-            public int fuiTimelineActionCount;
-            public int fuiShapeCount;
-            public int fuiShapeComponentCount;
-            public int fuiVertCount;
-            public int fuiTimelineFrameCount;
-            public int fuiTimelineEventCount;
-            public int fuiReferenceCount;
-            public int fuiEdittextCount;
-            public int fuiSymbolCount;
-            public int fuiBitmapCount;
-            public int imagesSize;
-            public int fuiFontNameCount;
-            public int fuiImportAssetCount;
-            public FuiRect frameSize = new FuiRect();
+            public FuiRect FrameSize = new FuiRect();
 
             public override string ToString()
             {
                 return $"Signature: 0x{Signature.ToString("X16")}\n" +
                     $"Version: {Version}\n" +
                     $"Content Size: {ContentSize}\n" +
-                    $"Frame Size: {frameSize}";
+                    $"Frame Size: {FrameSize}";
             }
         }
+
         public class FuiTimeline
         {
             public int SymbolIndex;
@@ -152,17 +125,11 @@ namespace OMI.Formats.FUI
             public short Index;
             public short Unknown1;
             public short NameIndex;
-            public FuiMatrix matrix = new FuiMatrix();
+            public FuiMatrix Matrix = new FuiMatrix();
             public FuiColorTransform ColorTransform = new FuiColorTransform();
-            public FuiRGBA Color = new FuiRGBA();
+            public System.Drawing.Color Color;
         }
-        public class FuiTimelineEventName
-        {
-            /// <summary>
-            /// Max size: 0x40
-            /// </summary>
-            public string EventName;
-        }
+
         public class FuiReference
         {
             public int SymbolIndex;
@@ -178,7 +145,7 @@ namespace OMI.Formats.FUI
             public FuiRect Rectangle = new FuiRect();
             public int FontID;
             public float Unknown1;
-            public FuiRGBA Color = new FuiRGBA();
+            public System.Drawing.Color Color;
             public int Unknown2;
             public int Unknown3;
             public int Unknown4;
@@ -205,19 +172,14 @@ namespace OMI.Formats.FUI
             /// <summary>
             /// Max size: 0x40
             /// </summary>
-            public string SymbolName;
+            public string Name;
             public int ObjectType;
             public int Index;
-        }
-        
-        public class FuiImportAsset
-        {
-            public string Name;
         }
 
         public class FuiBitmap
         {
-            public int Unknown0;
+            public int SymbolIndex;
             public int ImageFormat;
             public int Width;
             public int Height;
@@ -247,19 +209,18 @@ namespace OMI.Formats.FUI
             }
         }
         
-        public class FuiRGBA
+        public static class FuiRGBA
         {
-            public byte R => (byte)(RGBA >> 24 & 0xff);
-            public byte G => (byte)(RGBA >> 16 & 0xff);
-            public byte B => (byte)(RGBA >> 08 & 0xff);
-            public byte A => (byte)(RGBA >> 00 & 0xff);
-            public int RGBA { get; set; }
-
-            public override string ToString()
+            public static System.Drawing.Color GetColor(int rgba)
             {
-                return string.Format("#{0}", RGBA);
+                return System.Drawing.Color.FromArgb(rgba & 0xff | rgba >> 8 & 0xffffff);
             }
-
+            
+            public static int GetColor(System.Drawing.Color color)
+            {
+                int argb = color.ToArgb();
+                return (argb & 0xffffff) << 8 | argb >> 24 & 0xff;
+            }
         }
 
         public class FuiMatrix
@@ -287,7 +248,7 @@ namespace OMI.Formats.FUI
         public class FuiFillStyle
         {
             public int Type;
-            public FuiRGBA Color = new FuiRGBA();
+            public System.Drawing.Color Color;
             public int BitmapIndex;
             public FuiMatrix Matrix = new FuiMatrix();
         }
