@@ -10,12 +10,8 @@ namespace OMI.Workers.Language
     {
         private LOCFile _locfile;
         private int _type;
-        public static void Write(Stream stream, LOCFile file, int type = 2)
-        {
-            new LOCFileWriter(file, type).WriteToStream(stream);
-        }
 
-        private LOCFileWriter(LOCFile file, int type)
+        public LOCFileWriter(LOCFile file, int type)
         {
             _ = file ?? throw new ArgumentNullException(nameof(file));
             _locfile = file;
@@ -38,17 +34,18 @@ namespace OMI.Workers.Language
                 writer.Write(_locfile.Languages.Count);
                 if (_type == 2)
                 {
-                    stream.WriteByte(0); // dont use stringIds(ints)
+                    // dont use uids
+                    writer.Write(false);
                     writer.Write(_locfile.LocKeys.Count);
                     foreach (var key in _locfile.LocKeys.Keys)
                         WriteString(writer, key);
                 }
-                WriteLanguages(writer, _type);
-                WriteLanguageEntries(writer, _type);
+                WriteLanguages(writer);
+                WriteLanguageEntries(writer);
             }
         }
 
-        private void WriteLanguages(EndiannessAwareBinaryWriter writer, int type)
+        private void WriteLanguages(EndiannessAwareBinaryWriter writer)
         {
             _locfile.Languages.ForEach(language =>
             {
@@ -59,32 +56,33 @@ namespace OMI.Workers.Language
                 int size = 0;
                 size += sizeof(int); // null int
                 size += sizeof(byte); // null byte
-                size += sizeof(short) + Encoding.UTF8.GetByteCount(language);
+                size += sizeof(short) + writer.EncodingScheme.GetByteCount(language);
                 size += sizeof(int); // key count
 
                 foreach (var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (type == 0)
-                        size += (2 + writer.EncodingScheme.GetByteCount(locKey)); // loc key string
-                    size += (2 + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language])); // loc key string
+                    if (_type == 0)
+                        size += sizeof(short) + writer.EncodingScheme.GetByteCount(locKey); // loc key string
+                    size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc key string
                 }
 
                 writer.Write(size);
             });
         }
 
-        private void WriteLanguageEntries(EndiannessAwareBinaryWriter writer, int type)
+        private void WriteLanguageEntries(EndiannessAwareBinaryWriter writer)
         {
             _locfile.Languages.ForEach(language =>
             {
-                writer.Write(0x6D696B75); // :P
-                writer.Write(false); // <- only write when the previous written int was >0
+                writer.Write(_type);
+                if (_type > 0)
+                    writer.Write(false);
 
                 WriteString(writer, language);
                 writer.Write(_locfile.LocKeys.Keys.Count);
                 foreach(var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (type == 0) WriteString(writer, locKey);
+                    if (_type == 0) WriteString(writer, locKey);
                     WriteString(writer, _locfile.LocKeys[locKey][language]);
                 }
             });
