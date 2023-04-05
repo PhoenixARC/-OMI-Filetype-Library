@@ -36,16 +36,20 @@ namespace OMI.Workers.Color
                     col.ColorPallette = System.Drawing.Color.FromArgb(reader.ReadInt32());
                     colorContainer.Colors.Add(col);
                 }
-                int NumOfWaterColors = reader.ReadInt32();
-                for (int i = 0; i < NumOfWaterColors; i++)
+
+                if (colorContainer.Version > 0)
                 {
-                    var col = new ColorContainer.WaterColor();
-                    short length = reader.ReadInt16();
-                    col.Name = reader.ReadString(length);
-                    col.SurfaceColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
-                    col.UnderwaterColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
-                    col.FogColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
-                    colorContainer.WaterColors.Add(col);
+                    int NumOfWaterColors = reader.ReadInt32();
+                    for (int i = 0; i < NumOfWaterColors; i++)
+                    {
+                        var col = new ColorContainer.WaterColor();
+                        short length = reader.ReadInt16();
+                        col.Name = reader.ReadString(length);
+                        col.SurfaceColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                        col.UnderwaterColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                        col.FogColor = System.Drawing.Color.FromArgb(reader.ReadInt32());
+                        colorContainer.WaterColors.Add(col);
+                    }
                 }
             }
             return colorContainer;

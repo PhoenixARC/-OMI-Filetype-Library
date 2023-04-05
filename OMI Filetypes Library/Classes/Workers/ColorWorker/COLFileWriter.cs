@@ -38,14 +38,18 @@ namespace OMI.Workers.Color
                     writer.WriteString(col.Name, Encoding.ASCII);
                     writer.Write(col.ColorPallette.ToArgb());
                 }
-                writer.Write(_container.WaterColors.Count);
-                foreach (ColorContainer.WaterColor col in _container.WaterColors)
+
+                if (_container.Version > 0)
                 {
-                    writer.Write((short)col.Name.Length);
-                    writer.WriteString(col.Name, Encoding.ASCII);
-                    writer.Write(col.SurfaceColor.ToArgb());
-                    writer.Write(col.UnderwaterColor.ToArgb());
-                    writer.Write(col.FogColor.ToArgb());
+                    writer.Write(_container.WaterColors.Count);
+                    foreach (ColorContainer.WaterColor col in _container.WaterColors)
+                    {
+                        writer.Write((short)col.Name.Length);
+                        writer.WriteString(col.Name, Encoding.ASCII);
+                        writer.Write(col.SurfaceColor.ToArgb());
+                        writer.Write(col.UnderwaterColor.ToArgb());
+                        writer.Write(col.FogColor.ToArgb());
+                    }
                 }
             }
         }
