@@ -25,7 +25,7 @@ using System.Text;
 */
 namespace OMI
 {
-    internal class EndiannessAwareBinaryReader : BinaryReader
+    public class EndiannessAwareBinaryReader : BinaryReader
     {
         private readonly Endianness _endianness = Endianness.LittleEndian;
         private readonly Encoding _encoding;
@@ -107,14 +107,6 @@ namespace OMI
                 Array.Reverse(bytesRead);
             }
             return bytesRead;
-        }
-
-        public void Fill<T>(List<T> list, Func<EndiannessAwareBinaryReader, T> readItemFunc)
-        {
-            for (int i = 0; i < list.Capacity; i++)
-            {
-                list.Add(readItemFunc(this));
-            }
         }
     }
 }
