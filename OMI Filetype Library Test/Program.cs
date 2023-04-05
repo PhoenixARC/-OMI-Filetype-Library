@@ -18,7 +18,7 @@ namespace OMI_Filetype_Library_Test
     {
         static void Main(string[] args)
         {
-            if (args[0].Equals("--load") && args.Length >= 2 && File.Exists(args[1]))
+            if (args.Length >= 2 && args[0].Equals("--load") && File.Exists(args[1]))
             {
                 IDataFormatReader reader = GetFormatReaderFromFilename(args[1]);
                 object data = reader.FromFile(args[1]);
