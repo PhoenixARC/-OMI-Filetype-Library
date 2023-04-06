@@ -23,6 +23,7 @@ using OMI.Formats.FUI.Components;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
+using OMI.Extentions;
 /*
 * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
 * https://github.com/NessieHax

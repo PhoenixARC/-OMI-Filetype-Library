@@ -22,7 +22,7 @@ using System.Text;
 
 namespace OMI
 {
-    internal class EndiannessAwareBinaryWriter : BinaryWriter
+    public class EndiannessAwareBinaryWriter : BinaryWriter
     {
         private readonly Endianness _endianness = Endianness.LittleEndian;
         private readonly Encoding _encoding = Encoding.UTF8;
@@ -114,8 +114,12 @@ namespace OMI
 
         public void WriteString(string s, int maxCapacity, Encoding encoding)
         {
+            if (s.Length > maxCapacity)
+            {
+                throw new ArgumentException($"String cannot be longer than the max capacity specified({maxCapacity})!");
+            }
             byte[] buffer = new byte[maxCapacity];
-            encoding.GetBytes(s, 0, maxCapacity, buffer, 0);
+            encoding.GetBytes(s, 0, s.Length, buffer, 0);
             Write(buffer);
         }
 
@@ -123,14 +127,6 @@ namespace OMI
         {
             byte[] buffer = encoding.GetBytes(s);
             Write(buffer);
-        }
-
-        public void Empty<T>(List<T> list, Action<EndiannessAwareBinaryWriter, T> writeItem)
-        {
-            foreach (var item in list)
-            {
-                writeItem.Invoke(this, item);
-            }
         }
     }
 }

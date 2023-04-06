@@ -19,7 +19,7 @@ using System.IO;
 using System.Text;
 using OMI.Formats.FUI;
 using OMI.Formats.FUI.Components;
-using OMI.Workers;
+using OMI.Extentions;
 /*
 * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
 * https://github.com/NessieHax
