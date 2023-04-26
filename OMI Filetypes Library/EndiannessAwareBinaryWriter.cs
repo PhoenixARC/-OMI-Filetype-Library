@@ -67,8 +67,11 @@ namespace OMI
         }
 
         public override void Write(short value) => Write(value, _endianness);
+        public override void Write(ushort value) => Write((short)value, _endianness);
         public override void Write(int value) => Write(value, _endianness);
+        public override void Write(uint value) => Write((int)value, _endianness);
         public override void Write(long value) => Write(value, _endianness);
+        public override void Write(ulong value) => Write((long)value, _endianness);
         public override void Write(float value) => Write(value, _endianness);
 
         public void Write(short value, Endianness endianness)
