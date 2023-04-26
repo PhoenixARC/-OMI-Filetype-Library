@@ -28,7 +28,7 @@ namespace OMI.Workers.Language
 
         public void WriteToStream(Stream stream)
         {
-            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.UTF8, leaveOpen: true, Endianness.BigEndian))
             {
                 writer.Write(_type);
                 writer.Write(_locfile.Languages.Count);
@@ -90,7 +90,8 @@ namespace OMI.Workers.Language
 
         private void WriteString(EndiannessAwareBinaryWriter writer, string s)
         {
-            writer.Write(Convert.ToUInt16(writer.EncodingScheme.GetByteCount(s)));
+            var length = Convert.ToInt16(writer.EncodingScheme.GetByteCount(s));
+            writer.Write(length);
             writer.WriteString(s);
         }
     }
