@@ -40,8 +40,7 @@ namespace OMI.Workers.Pck
                     WriteString(writer, entry);
                 };
                 if (_pckFile.HasVerionString)
-                    writer.Write(0b01001101010010010100101101010101); // :^)
-
+                    writer.Write(1);
 
                 writer.Write(_pckFile.Files.Count);
                 foreach (var file in _pckFile.Files)

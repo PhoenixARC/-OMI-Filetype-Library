@@ -64,8 +64,8 @@ namespace OMI.Workers.Pck
                     throw new OverflowException(nameof(pck_type));
                 else if (pck_type < 3) throw new Exception(pck_type.ToString());
 
-                pckFile = new PckFile(pck_type);
-                IList<string> propertyList = ReadLookUpTable(reader, out pckFile.HasVerionString);
+                IList<string> propertyList = ReadLookUpTable(reader, out bool hasVersionStr);
+                pckFile = new PckFile(pck_type, hasVersionStr);
                 ReadFileEntries(pckFile, reader);
                 ReadFileContents(pckFile, propertyList, reader);
             }
@@ -75,18 +75,18 @@ namespace OMI.Workers.Pck
         private IList<string> ReadLookUpTable(EndiannessAwareBinaryReader reader, out bool hasVerStr)
         {
             int count = reader.ReadInt32();
-            var propertyList = new List<string>(count);
+            var propertyLookUp = new List<string>(count);
             for (int i = 0; i < count; i++)
             {
                 int index = reader.ReadInt32();
                 string value = ReadString(reader);
-                propertyList.Insert(index, value);
+                propertyLookUp.Insert(index, value);
             }
-            if (hasVerStr = propertyList.Contains(PckFile.XMLVersionString))
+            if (hasVerStr = propertyLookUp.Contains(PckFile.XMLVersionString))
             {
                 Console.WriteLine(reader.ReadInt32()); // xml version num ??
             }
-            return propertyList;
+            return propertyLookUp;
         }
 
         private void ReadFileEntries(PckFile file, EndiannessAwareBinaryReader reader)

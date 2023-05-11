@@ -12,7 +12,8 @@ namespace OMI.Formats.Pck
         public List<FileData> Files { get; } = new List<FileData>();
 
         public const string XMLVersionString = "XMLVERSION";
-        public bool HasVerionString;
+        public bool HasVerionString => _hasVerionString;
+        private bool _hasVerionString = false;
 
         public class PCKProperties : List<(string property, string value)>
         {
@@ -155,9 +156,20 @@ namespace OMI.Formats.Pck
 
         }
 
+        public PckFile(int type, bool hasVersionStr)
+            : this(type)
+        {
+            SetVersion(hasVersionStr);
+        }
+
         public PckFile(int type)
         {
             this.type = type;
+        }
+
+        public void SetVersion(bool enabled)
+        {
+            _hasVerionString = enabled;
         }
 
         public List<string> GetPropertyList()
@@ -170,7 +182,7 @@ namespace OMI.Formats.Pck
             })
             );
             if (HasVerionString)
-                LUT.Add(XMLVersionString);
+                LUT.Insert(0, XMLVersionString);
             return LUT;
         }
 
