@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace OMI.Formats.Pck
 {
+    using PropertyValueType = KeyValuePair<string, string>;
     public class PckFile
     {
         public int type { get; }
@@ -15,8 +16,18 @@ namespace OMI.Formats.Pck
         public bool HasVerionString => _hasVerionString;
         private bool _hasVerionString = false;
 
-        public class PCKProperties : List<(string property, string value)>
+        public class PCKProperties : List<PropertyValueType>
         {
+            public void Add<T>(string key, T value)
+            {
+                Add(new PropertyValueType(key, value.ToString()));
+            }
+
+            public void Add<T>((string key, T value) property)
+            {
+                Add(new PropertyValueType(property.key, property.value.ToString()));
+            }
+
             public bool Contains(string property)
             {
                 return HasProperty(property);
@@ -24,12 +35,12 @@ namespace OMI.Formats.Pck
 
             public bool HasProperty(string property)
             {
-                return GetProperty(property) != default!;
+                return GetProperty(property).Key != string.Empty;
             }
 
-            public (string, string) GetProperty(string property)
+            public PropertyValueType GetProperty(string property)
             {
-                return this.FirstOrDefault(p => p.property.Equals(property))!;
+                return this.FirstOrDefault(p => p.Key.Equals(property))!;
             }
 
             public T GetPropertyValue<T>(string property, Func<string, T> func)
@@ -39,12 +50,12 @@ namespace OMI.Formats.Pck
 
             public string GetPropertyValue(string property)
             {
-                return GetProperty(property).Item2;
+                return GetProperty(property).Value;
             }
 
-            public (string, string)[] GetProperties(string property)
+            public PropertyValueType[] GetProperties(string property)
             {
-                return FindAll(p => p.property == property).ToArray();
+                return FindAll(p => p.Key == property).ToArray();
             }
 
             public bool HasMoreThanOneOf(string property)
@@ -56,10 +67,10 @@ namespace OMI.Formats.Pck
             {
                 if (HasProperty(property))
                 {
-                    this[IndexOf(GetProperty(property))] = (property, value);
+                    this[IndexOf(GetProperty(property))] = new PropertyValueType(property, value);
                     return;
                 }
-                Add((property, value));
+                Add(new PropertyValueType(property, value));
             }
 
         }
@@ -177,8 +188,8 @@ namespace OMI.Formats.Pck
             var LUT = new List<string>();
             Files.ForEach(file => file.Properties.ForEach(pair =>
             {
-                if (!LUT.Contains(pair.property))
-                    LUT.Add(pair.property);
+                if (!LUT.Contains(pair.Key))
+                    LUT.Add(pair.Key);
             })
             );
             if (HasVerionString)

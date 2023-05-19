@@ -55,10 +55,10 @@ namespace OMI.Workers.Pck
                     writer.Write(file.Properties.Count);
                     foreach (var property in file.Properties)
                     {
-                        if (!_propertyList.Contains(property.property))
-                            throw new KeyNotFoundException("Property not found in Look Up Table: " + property.property);
-                        writer.Write(_propertyList.IndexOf(property.property));
-                        WriteString(writer, property.value);
+                        if (!_propertyList.Contains(property.Key))
+                            throw new KeyNotFoundException("Property not found in Look Up Table: " + property.Key);
+                        writer.Write(_propertyList.IndexOf(property.Key));
+                        WriteString(writer, property.Value);
                     }
                     writer.Write(file.Data);
                 }
