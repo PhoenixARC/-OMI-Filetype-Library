@@ -10,7 +10,8 @@ namespace OMI.Formats.Pck
     public class PckFile
     {
         public int type { get; }
-        public List<FileData> Files { get; } = new List<FileData>();
+
+        public FileCollection Files { get; } = new FileCollection();
 
         public const string XMLVersionString = "XMLVERSION";
         public bool HasVerionString => _hasVerionString;
@@ -186,12 +187,14 @@ namespace OMI.Formats.Pck
         public List<string> GetPropertyList()
         {
             var LUT = new List<string>();
-            Files.ForEach(file => file.Properties.ForEach(pair =>
+            foreach (var file in Files)
             {
-                if (!LUT.Contains(pair.Key))
-                    LUT.Add(pair.Key);
-            })
-            );
+                file.Properties.ForEach(pair =>
+                {
+                    if (!LUT.Contains(pair.Key))
+                        LUT.Add(pair.Key);
+                });
+            }
             if (HasVerionString)
                 LUT.Insert(0, XMLVersionString);
             return LUT;

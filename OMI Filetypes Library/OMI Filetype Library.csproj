@@ -53,6 +53,7 @@
     <Compile Include="EndiannessAwareBinaryWriter.cs" />
     <Compile Include="Formats\ModelNotFoundException.cs" />
     <Compile Include="Formats\PckFile.cs" />
+    <Compile Include="Formats\PckFile.FileCollection.cs" />
     <Compile Include="Workers\ArchiveWorker\ARCFileReader.cs" />
     <Compile Include="Workers\ArchiveWorker\ARCFileWriter.cs" />
     <Compile Include="Formats\Archive.cs" />
