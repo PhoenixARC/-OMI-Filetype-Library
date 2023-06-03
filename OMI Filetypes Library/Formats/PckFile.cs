@@ -36,7 +36,7 @@ namespace OMI.Formats.Pck
 
             public bool HasProperty(string property)
             {
-                return GetProperty(property).Key != string.Empty;
+                return GetProperty(property).Key is not null;
             }
 
             public PropertyValueType GetProperty(string property)
