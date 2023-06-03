@@ -11,20 +11,21 @@ namespace OMI.Formats.Pck
     {
         private OrderedDictionary _files = new OrderedDictionary();
 
-        public PckFile.FileData this[string key]
+        public PckFile.FileData this[string key, PckFile.FileData.FileType type]
         {
             get
             {
-                if (!_files.Contains(key))
+                var storeKey = GetStoreKey(key, type);
+                if (!_files.Contains(storeKey))
                 {
-                    throw new KeyNotFoundException(key);
+                    throw new KeyNotFoundException(storeKey.ToString());
                 }
-                return (PckFile.FileData)_files[key];
+                return (PckFile.FileData)_files[storeKey];
             }
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
-                _files[key] = value;
+                _files[GetStoreKey(key, type)] = value;
             }
         }
 
@@ -42,8 +43,9 @@ namespace OMI.Formats.Pck
 
         public bool IsReadOnly => false;
 
-        public void Add(string key, PckFile.FileData value)
+        public void Add(PckFile.FileData value)
         {
+            var key = GetStoreKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
             {
                 var markedKey = key + value.GetHashCode().ToString();
@@ -54,11 +56,6 @@ namespace OMI.Formats.Pck
             _files.Add(key, value);
         }
 
-        public void Add(PckFile.FileData item)
-        {
-            Add(item.Filename, item);
-        }
-
         public void Clear()
         {
             _files.Clear();
@@ -66,12 +63,17 @@ namespace OMI.Formats.Pck
 
         public bool Contains(PckFile.FileData item)
         {
-            return Contains(item.Filename);
+            return Contains(item.Filename, item.Filetype);
         }
 
-        public bool Contains(string key)
+        public bool Contains(string key, PckFile.FileData.FileType fileType)
         {
-            return _files.Contains(key);
+            return _files.Contains(GetStoreKey(key, fileType));
+        }
+
+        private object GetStoreKey(string key, PckFile.FileData.FileType fileType)
+        {
+            return $"{key}_{fileType}";
         }
 
         public void CopyTo(PckFile.FileData[] array, int arrayIndex)
@@ -103,9 +105,9 @@ namespace OMI.Formats.Pck
             _files.Insert(index, item.Filename, item);
         }
 
-        public bool Remove(string key)
+        private bool Remove(string key, PckFile.FileData.FileType fileType)
         {
-            if (Contains(key))
+            if (Contains(key, fileType))
             {
                 _files.Remove(key);
                 return true;
@@ -115,19 +117,18 @@ namespace OMI.Formats.Pck
 
         public bool Remove(PckFile.FileData item)
         {
-            return Remove(item.Filename);
+            return Remove(item.Filename, item.Filetype);
         }
 
         public void RemoveAll(Predicate<PckFile.FileData> value)
         {
-            List<string> values = new List<string>();
+            var valuesToRemove = new List<PckFile.FileData>();
             foreach (PckFile.FileData item in _files.Values)
             {
                 if (value(item))
-                    values.Add(item.Filename);
+                    valuesToRemove.Add(item);
             }
-
-            values.ForEach(v => Remove(v));
+            valuesToRemove.ForEach(v => Remove(v));
         }
 
         public void RemoveAt(int index)
@@ -135,11 +136,11 @@ namespace OMI.Formats.Pck
             throw new NotImplementedException();
         }
 
-        public bool TryGetValue(string key, out PckFile.FileData value)
+        public bool TryGetValue(string key, PckFile.FileData.FileType fileType, out PckFile.FileData value)
         {
-            if (Contains(key))
+            if (Contains(key, fileType))
             {
-                value = this[key];
+                value = this[key, fileType];
                 return true;
             }
             value = null;
