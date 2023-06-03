@@ -116,11 +116,14 @@ namespace OMI.Formats.Pck
 
         public void RemoveAll(Predicate<PckFile.FileData> value)
         {
+            List<string> values = new List<string>();
             foreach (PckFile.FileData item in _files.Values)
             {
                 if (value(item))
-                    Remove(item.Filename);
+                    values.Add(item.Filename);
             }
+
+            values.ForEach(v => Remove(v));
         }
 
         public void RemoveAt(int index)
