@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 
 namespace OMI.Formats.Pck
@@ -45,9 +46,12 @@ namespace OMI.Formats.Pck
         {
             if (_files.Contains(key))
             {
-                throw new ArgumentException("Key already in Collection");
+                var markedKey = key + value.GetHashCode().ToString();
+                Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                _files.Add(markedKey, value);
+                return;
             }
-            _files[key] = value;
+            _files.Add(key, value);
         }
 
         public void Add(PckFile.FileData item)
