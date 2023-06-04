@@ -31,7 +31,7 @@ namespace OMI.Formats.Pck
 
         public PckFile.FileData this[int index]
         {
-            get => (PckFile.FileData)_files[index];
+            get => _files[index] as PckFile.FileData;
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
@@ -48,9 +48,13 @@ namespace OMI.Formats.Pck
             var key = GetStoreKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
             {
-                var markedKey = key + value.GetHashCode().ToString();
-                Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                _files.Add(markedKey, value);
+                if (!this[value.Filename, value.Filetype].Equals(value))
+                {
+                    var markedKey = key + value.GetHashCode().ToString();
+                    Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'",
+                        category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                    _files.Add(markedKey, value);
+                }
                 return;
             }
             _files.Add(key, value);
@@ -66,14 +70,19 @@ namespace OMI.Formats.Pck
             return Contains(item.Filename, item.Filetype);
         }
 
-        public bool Contains(string key, PckFile.FileData.FileType fileType)
+        public bool Contains(string filename, PckFile.FileData.FileType filetype)
         {
-            return _files.Contains(GetStoreKey(key, fileType));
+            return _files.Contains(GetStoreKey(filename, filetype));
         }
 
         private object GetStoreKey(string key, PckFile.FileData.FileType fileType)
         {
             return $"{key}_{fileType}";
+        }
+
+        private object GetStoreKey(PckFile.FileData item)
+        {
+            return GetStoreKey(item.Filename, item.Filetype);
         }
 
         public void CopyTo(PckFile.FileData[] array, int arrayIndex)
@@ -102,14 +111,14 @@ namespace OMI.Formats.Pck
         public void Insert(int index, PckFile.FileData item)
         {
             _ = item ?? throw new ArgumentNullException(nameof(item));
-            _files.Insert(index, item.Filename, item);
+            _files.Insert(index, GetStoreKey(item), item);
         }
 
-        private bool Remove(string key, PckFile.FileData.FileType fileType)
+        private bool Remove(string key, PckFile.FileData.FileType filetype)
         {
-            if (Contains(key, fileType))
+            if (Contains(key, filetype))
             {
-                _files.Remove(key);
+                _files.Remove(GetStoreKey(key, filetype));
                 return true;
             }
             return false;
@@ -117,7 +126,9 @@ namespace OMI.Formats.Pck
 
         public bool Remove(PckFile.FileData item)
         {
-            return Remove(item.Filename, item.Filetype);
+            if (item is not null)
+                return Remove(item.Filename, item.Filetype);
+            return false;
         }
 
         public void RemoveAll(Predicate<PckFile.FileData> value)
@@ -133,7 +144,7 @@ namespace OMI.Formats.Pck
 
         public void RemoveAt(int index)
         {
-            throw new NotImplementedException();
+            Remove(this[index]);
         }
 
         public bool TryGetValue(string key, PckFile.FileData.FileType fileType, out PckFile.FileData value)
