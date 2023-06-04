@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,14 +77,17 @@ namespace OMI.Formats.Pck
 
         }
 
-        public class FileData
+        public class FileData : IEquatable<FileData>
         {
             public enum FileType : int
             {
                 SkinFile = 0,  // *.png
                 CapeFile = 1,  // *.png
                 TextureFile = 2,  // *.png
-                UIDataFile = 3,  // *.fui ????
+                /// <summary>
+                /// Unused !
+                /// </summary>
+                UIDataFile = 3,
                 /// <summary>
                 /// "0" file
                 /// </summary>
@@ -166,6 +170,33 @@ namespace OMI.Formats.Pck
                 _data = data;
             }
 
+            public bool Equals(FileData other)
+            {
+                var thisHash = BitConverter.ToString(MD5.Create().ComputeHash(Data));
+                var otherHash = BitConverter.ToString(MD5.Create().ComputeHash(other.Data));
+                return Filename.Equals(other.Filename) &&
+                    Filetype.Equals(other.Filetype) &&
+                    Size.Equals(other.Size) &&
+                    thisHash.Equals(otherHash);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is FileData other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = 953938382;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Filename);
+                hashCode = hashCode * -1521134295 + Filetype.GetHashCode();
+                hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
+                hashCode = hashCode * -1521134295 + Size.GetHashCode();
+                hashCode = hashCode * -1521134295 + EqualityComparer<PCKProperties>.Default.GetHashCode(Properties);
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(filename);
+                hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(_data);
+                return hashCode;
+            }
         }
 
         public PckFile(int type, bool hasVersionStr)
