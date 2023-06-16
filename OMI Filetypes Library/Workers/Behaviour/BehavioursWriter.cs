@@ -21,7 +21,10 @@ namespace OMI.Workers.Behaviour
 
         public void WriteToFile(string filename)
         {
-            throw new NotImplementedException();
+            using (var fs = File.OpenWrite(filename))
+            {
+                WriteToStream(fs);
+            }
         }
 
         void IDataFormatWriter.WriteToStream(Stream stream) => WriteToStream(stream);
