@@ -10,6 +10,8 @@ namespace OMI.Formats.Pck
     public class FileCollection : IList<PckFile.FileData>
     {
         private OrderedDictionary _files = new OrderedDictionary();
+        private ArrayList duplicates = new ArrayList();
+        private ArrayList duplicate_names = new ArrayList();
 
         public PckFile.FileData this[string key, PckFile.FileData.FileType type]
         {
@@ -48,13 +50,18 @@ namespace OMI.Formats.Pck
             var key = GetStoreKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
             {
-                if (!this[value.Filename, value.Filetype].Equals(value))
+                var markedKey = key + value.GetHashCode().ToString();
+                if (this[value.Filename, value.Filetype].Equals(value))
                 {
-                    var markedKey = key + value.GetHashCode().ToString();
-                    Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'",
+                    Debug.WriteLine($"'{value.Filename}' is a duplicate!",
                         category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    _files.Add(markedKey, value);
+                    duplicates.Add(markedKey);
                 }
+                Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'",
+                    category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                duplicate_names.Add(markedKey);
+
+                _files.Add(markedKey, value);
                 return;
             }
             _files.Add(key, value);
@@ -129,6 +136,24 @@ namespace OMI.Formats.Pck
             if (item is not null)
                 return Remove(item.Filename, item.Filetype);
             return false;
+        }
+
+        public void RemoveDuplicates()
+        {
+            foreach (var item in duplicates)
+            {
+                _files.Remove(item);
+            }
+            duplicates.Clear();
+        }
+
+        public void RemoveDuplicateNames()
+        {
+            foreach (var item in duplicate_names)
+            {
+                _files.Remove(item);
+            }
+            duplicate_names.Clear();
         }
 
         public void RemoveAll(Predicate<PckFile.FileData> value)
