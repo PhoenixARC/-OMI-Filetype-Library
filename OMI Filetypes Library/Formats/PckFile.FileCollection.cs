@@ -11,7 +11,10 @@ namespace OMI.Formats.Pck
     {
         private OrderedDictionary _files = new OrderedDictionary();
         private ArrayList duplicates = new ArrayList();
-        private ArrayList duplicate_names = new ArrayList();
+
+        public int Count => _files.Count;
+
+        public bool IsReadOnly => false;
 
         public PckFile.FileData this[string key, PckFile.FileData.FileType type]
         {
@@ -41,25 +44,23 @@ namespace OMI.Formats.Pck
             }
         }
 
-        public int Count => _files.Count;
-
-        public bool IsReadOnly => false;
-
         public void Add(PckFile.FileData value)
         {
             var key = GetStoreKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
             {
-                var markedKey = key + value.GetHashCode().ToString();
                 if (this[value.Filename, value.Filetype].Equals(value))
                 {
-                    Debug.WriteLine($"'{value.Filename}' is a duplicate!",
-                        category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    duplicates.Add(markedKey);
+                    Debug.WriteLine($"Duplicate file: '{value.Filename}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                    Debug.WriteLine($"Merging '{value.Filename}' Properties", category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                    var first = this[value.Filename, value.Filetype];
+                    first.Properties.Merge(value.Properties);
+                    return;
                 }
+                var markedKey = key + value.GetHashCode().ToString();
                 Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'",
                     category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                duplicate_names.Add(markedKey);
+                duplicates.Add(markedKey);
 
                 _files.Add(markedKey, value);
                 return;
@@ -140,20 +141,11 @@ namespace OMI.Formats.Pck
 
         public void RemoveDuplicates()
         {
-            foreach (var item in duplicates)
+            foreach (var key in duplicates)
             {
-                _files.Remove(item);
+                _files.Remove(key);
             }
             duplicates.Clear();
-        }
-
-        public void RemoveDuplicateNames()
-        {
-            foreach (var item in duplicate_names)
-            {
-                _files.Remove(item);
-            }
-            duplicate_names.Clear();
         }
 
         public void RemoveAll(Predicate<PckFile.FileData> value)

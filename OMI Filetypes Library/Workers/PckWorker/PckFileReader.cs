@@ -17,6 +17,7 @@
 **/
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using OMI.Formats.Pck;
@@ -26,6 +27,8 @@ namespace OMI.Workers.Pck
     public class PckFileReader : IDataFormatReader<PckFile>, IDataFormatReader
     {
         private readonly Endianness _endianness;
+
+        private IList<PckFile.FileData> _files;
 
         /// <summary>
         /// Constructs a new Instance of PckFileReader with the default Endianness (<see cref="Endianness.BigEndian"/>)
@@ -66,7 +69,7 @@ namespace OMI.Workers.Pck
 
                 IList<string> propertyList = ReadLookUpTable(reader, out bool hasVersionStr);
                 pckFile = new PckFile(pck_type, hasVersionStr);
-                ReadFileEntries(pckFile, reader);
+                ReadFileEntries(reader);
                 ReadFileContents(pckFile, propertyList, reader);
             }
             return pckFile;
@@ -84,27 +87,28 @@ namespace OMI.Workers.Pck
             }
             if (hasVerStr = propertyLookUp.Contains(PckFile.XMLVersionString))
             {
-                Console.WriteLine(reader.ReadInt32()); // xml version num ??
+                Debug.WriteLine($"XML Version num: {reader.ReadInt32()}"); // xml version num ??
             }
             return propertyLookUp;
         }
 
-        private void ReadFileEntries(PckFile file, EndiannessAwareBinaryReader reader)
+        private void ReadFileEntries(EndiannessAwareBinaryReader reader)
         {
             int file_entry_count = reader.ReadInt32();
+            _files = new List<PckFile.FileData>(file_entry_count);
             for (; 0 < file_entry_count; file_entry_count--)
             {
                 int file_size = reader.ReadInt32();
                 var file_type = (PckFile.FileData.FileType)reader.ReadInt32();
                 string file_name = ReadString(reader).Replace('\\', '/');
                 var entry = new PckFile.FileData(file_name, file_type, file_size);
-                file.Files.Add(entry);
+                _files.Add(entry);
             }
         }
 
         private void ReadFileContents(PckFile pckFile, IList<string> propertyList, EndiannessAwareBinaryReader reader)
         {
-            foreach (var file in pckFile.Files)
+            foreach (var file in _files)
             {
                 int property_count = reader.ReadInt32();
                 for (; 0 < property_count; property_count--)
@@ -114,7 +118,9 @@ namespace OMI.Workers.Pck
                     file.Properties.Add((key, value));
                 }
                 reader.Read(file.Data, 0, file.Size);
+                pckFile.Files.Add(file);
             };
+            _files.Clear();
         }
 
         private string ReadString(EndiannessAwareBinaryReader reader)

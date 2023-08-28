@@ -65,6 +65,11 @@ namespace OMI.Formats.Pck
                 return GetProperties(property).Length > 1;
             }
 
+            public void Merge(PCKProperties other)
+            {
+                AddRange(other);
+            }
+
             public void SetProperty(string property, string value)
             {
                 if (HasProperty(property))
@@ -172,8 +177,9 @@ namespace OMI.Formats.Pck
 
             public bool Equals(FileData other)
             {
-                var thisHash = BitConverter.ToString(MD5.Create().ComputeHash(Data));
-                var otherHash = BitConverter.ToString(MD5.Create().ComputeHash(other.Data));
+                var hasher = MD5.Create();
+                var thisHash = BitConverter.ToString(hasher.ComputeHash(Data));
+                var otherHash = BitConverter.ToString(hasher.ComputeHash(other.Data));
                 return Filename.Equals(other.Filename) &&
                     Filetype.Equals(other.Filetype) &&
                     Size.Equals(other.Size) &&
