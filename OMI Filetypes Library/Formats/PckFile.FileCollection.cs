@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace OMI.Formats.Pck
 {
-    public class FileCollection : IList<PckFile.FileData>
+    public class FileCollection : IList<PckFileData>
     {
         private OrderedDictionary _files = new OrderedDictionary();
         private ArrayList duplicates = new ArrayList();
@@ -16,7 +16,7 @@ namespace OMI.Formats.Pck
 
         public bool IsReadOnly => false;
 
-        public PckFile.FileData this[string key, PckFile.FileData.FileType type]
+        public PckFileData this[string key, PckFileType type]
         {
             get
             {
@@ -25,7 +25,7 @@ namespace OMI.Formats.Pck
                 {
                     throw new KeyNotFoundException(storeKey.ToString());
                 }
-                return (PckFile.FileData)_files[storeKey];
+                return (PckFileData)_files[storeKey];
             }
             set
             {
@@ -34,9 +34,9 @@ namespace OMI.Formats.Pck
             }
         }
 
-        public PckFile.FileData this[int index]
+        public PckFileData this[int index]
         {
-            get => _files[index] as PckFile.FileData;
+            get => _files[index] as PckFileData;
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
@@ -44,7 +44,7 @@ namespace OMI.Formats.Pck
             }
         }
 
-        public void Add(PckFile.FileData value)
+        public void Add(PckFileData value)
         {
             var key = GetStoreKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
@@ -73,37 +73,37 @@ namespace OMI.Formats.Pck
             _files.Clear();
         }
 
-        public bool Contains(PckFile.FileData item)
+        public bool Contains(PckFileData item)
         {
             return Contains(item.Filename, item.Filetype);
         }
 
-        public bool Contains(string filename, PckFile.FileData.FileType filetype)
+        public bool Contains(string filename, PckFileType filetype)
         {
             return _files.Contains(GetStoreKey(filename, filetype));
         }
 
-        private object GetStoreKey(string key, PckFile.FileData.FileType fileType)
+        private object GetStoreKey(string key, PckFileType fileType)
         {
             return $"{key}_{fileType}";
         }
 
-        private object GetStoreKey(PckFile.FileData item)
+        private object GetStoreKey(PckFileData item)
         {
             return GetStoreKey(item.Filename, item.Filetype);
         }
 
-        public void CopyTo(PckFile.FileData[] array, int arrayIndex)
+        public void CopyTo(PckFileData[] array, int arrayIndex)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerator<PckFile.FileData> GetEnumerator()
+        public IEnumerator<PckFileData> GetEnumerator()
         {
-            return _files.Values.Cast<PckFile.FileData>().GetEnumerator();
+            return _files.Values.Cast<PckFileData>().GetEnumerator();
         }
 
-        public int IndexOf(PckFile.FileData key)
+        public int IndexOf(PckFileData key)
         {
             for (int i = 0; i < _files.Count; i++)
             {
@@ -116,13 +116,13 @@ namespace OMI.Formats.Pck
             return -1;
         }
 
-        public void Insert(int index, PckFile.FileData item)
+        public void Insert(int index, PckFileData item)
         {
             _ = item ?? throw new ArgumentNullException(nameof(item));
             _files.Insert(index, GetStoreKey(item), item);
         }
 
-        private bool Remove(string key, PckFile.FileData.FileType filetype)
+        private bool Remove(string key, PckFileType filetype)
         {
             if (Contains(key, filetype))
             {
@@ -132,7 +132,7 @@ namespace OMI.Formats.Pck
             return false;
         }
 
-        public bool Remove(PckFile.FileData item)
+        public bool Remove(PckFileData item)
         {
             if (item is not null)
                 return Remove(item.Filename, item.Filetype);
@@ -148,10 +148,10 @@ namespace OMI.Formats.Pck
             duplicates.Clear();
         }
 
-        public void RemoveAll(Predicate<PckFile.FileData> value)
+        public void RemoveAll(Predicate<PckFileData> value)
         {
-            var valuesToRemove = new List<PckFile.FileData>();
-            foreach (PckFile.FileData item in _files.Values)
+            var valuesToRemove = new List<PckFileData>();
+            foreach (PckFileData item in _files.Values)
             {
                 if (value(item))
                     valuesToRemove.Add(item);
@@ -164,7 +164,7 @@ namespace OMI.Formats.Pck
             Remove(this[index]);
         }
 
-        public bool TryGetValue(string key, PckFile.FileData.FileType fileType, out PckFile.FileData value)
+        public bool TryGetValue(string key, PckFileType fileType, out PckFileData value)
         {
             if (Contains(key, fileType))
             {

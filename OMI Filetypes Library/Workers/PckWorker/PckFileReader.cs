@@ -28,7 +28,7 @@ namespace OMI.Workers.Pck
     {
         private readonly Endianness _endianness;
 
-        private IList<PckFile.FileData> _files;
+        private IList<PckFileData> _files;
 
         /// <summary>
         /// Constructs a new Instance of PckFileReader with the default Endianness (<see cref="Endianness.BigEndian"/>)
@@ -95,13 +95,13 @@ namespace OMI.Workers.Pck
         private void ReadFileEntries(EndiannessAwareBinaryReader reader)
         {
             int file_entry_count = reader.ReadInt32();
-            _files = new List<PckFile.FileData>(file_entry_count);
+            _files = new List<PckFileData>(file_entry_count);
             for (; 0 < file_entry_count; file_entry_count--)
             {
                 int file_size = reader.ReadInt32();
-                var file_type = (PckFile.FileData.FileType)reader.ReadInt32();
+                var file_type = (PckFileType)reader.ReadInt32();
                 string file_name = ReadString(reader).Replace('\\', '/');
-                var entry = new PckFile.FileData(file_name, file_type, file_size);
+                var entry = new PckFileData(file_name, file_type, file_size);
                 _files.Add(entry);
             }
         }
@@ -115,7 +115,7 @@ namespace OMI.Workers.Pck
                 {
                     string key = propertyList[reader.ReadInt32()];
                     string value = ReadString(reader);
-                    file.Properties.Add((key, value));
+                    file.Properties.Add(key, value);
                 }
                 reader.Read(file.Data, 0, file.Size);
                 pckFile.Files.Add(file);

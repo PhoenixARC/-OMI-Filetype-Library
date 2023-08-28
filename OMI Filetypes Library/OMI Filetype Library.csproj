@@ -46,6 +46,8 @@
     <Compile Include="Endianness.cs" />
     <Compile Include="Extentions\EndiannessAwareBinaryExtention.cs" />
     <Compile Include="Formats\BehaviourFile.cs" />
+    <Compile Include="Formats\PckFileType.cs" />
+    <Compile Include="Formats\PckFileData.cs" />
     <Compile Include="Formats\FourjUserInterface.cs" />
     <Compile Include="Formats\GameRuleFile.cs" />
     <Compile Include="Formats\Languages.cs" />
@@ -54,6 +56,7 @@
     <Compile Include="Formats\ModelNotFoundException.cs" />
     <Compile Include="Formats\PckFile.cs" />
     <Compile Include="Formats\PckFile.FileCollection.cs" />
+    <Compile Include="Formats\PckFileProperties.cs" />
     <Compile Include="Workers\ArchiveWorker\ARCFileReader.cs" />
     <Compile Include="Workers\ArchiveWorker\ARCFileWriter.cs" />
     <Compile Include="Formats\Archive.cs" />
