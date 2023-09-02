@@ -9,16 +9,46 @@ namespace OMI.Formats.Pck
         public string Filename
         {
             get => filename;
-            set => filename = value.Replace('\\', '/');
+            set
+            {
+                string newFilename = value.Replace('\\', '/');
+                OnFilenameChanging?.Invoke(this, newFilename);
+                filename = newFilename;
+            }
+        }
+        public PckFileType Filetype
+        {
+            get => filetype;
+            set
+            {
+                var newValue = value;
+                OnFiletypeChanging?.Invoke(this, newValue);
+                filetype = newValue;
+            }
         }
 
-        public PckFileType Filetype { get; set; }
+        internal delegate void OnFilenameChangingDelegate(PckFileData _this, string newFilename);
+        internal delegate void OnFiletypeChangingDelegate(PckFileData _this, PckFileType newFiletype);
+        internal delegate void OnMoveDelegate(PckFileData _this);
+
         public byte[] Data => _data;
         public int Size => _data?.Length ?? 0;
         public PckFileProperties Properties { get; } = new PckFileProperties();
 
         private string filename;
+        private PckFileType filetype;
+        private OnFilenameChangingDelegate OnFilenameChanging;
+        private OnFiletypeChangingDelegate OnFiletypeChanging;
+        private OnMoveDelegate OnMove;
         private byte[] _data = new byte[0];
+
+        internal PckFileData(string filename, PckFileType filetype,
+            OnFilenameChangingDelegate onFilenameChanging, OnFiletypeChangingDelegate onFiletypeChanging,
+            OnMoveDelegate onMove)
+            : this(filename, filetype)
+        {
+            SetEvents(onFilenameChanging, onFiletypeChanging, onMove);
+        }
 
         public PckFileData(string filename, PckFileType filetype)
         {
@@ -31,10 +61,16 @@ namespace OMI.Formats.Pck
             _data = new byte[dataSize];
         }
 
-        public PckFileData(PckFileData file) : this(file.Filename, file.Filetype)
+        internal bool HasEventsSet()
         {
-            Properties = file.Properties;
-            SetData(file.Data);
+            return OnFilenameChanging != null && OnFiletypeChanging != null && OnMove != null;
+        }
+
+        internal void SetEvents(OnFilenameChangingDelegate onFilenameChanging, OnFiletypeChangingDelegate onFiletypeChanging, OnMoveDelegate onMove)
+        {
+            OnFilenameChanging = onFilenameChanging;
+            OnFiletypeChanging = onFiletypeChanging;
+            OnMove = onMove;
         }
 
         public void SetData(byte[] data)
@@ -69,6 +105,11 @@ namespace OMI.Formats.Pck
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(filename);
             hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(_data);
             return hashCode;
+        }
+
+        internal void Move()
+        {
+            OnMove?.Invoke(this);
         }
     }
 }

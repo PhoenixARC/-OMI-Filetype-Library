@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,12 +10,14 @@ namespace OMI.Formats.Pck
     public class PckFile
     {
         public readonly int type;
-
-        public FileCollection Files { get; } = new FileCollection();
-
         public const string XMLVersionString = "XMLVERSION";
         public bool HasVerionString => _hasVerionString;
+        public int FileCount => Files.Count;
+
+
+        private FileCollection Files { get; } = new FileCollection();
         private bool _hasVerionString = false;
+
         public PckFile(int type, bool hasVersionStr)
             : this(type)
         {
@@ -56,7 +59,7 @@ namespace OMI.Formats.Pck
         public PckFileData CreateNewFile(string filename, PckFileType filetype)
         {
             var file = new PckFileData(filename, filetype);
-            Files.Add(file);
+            AddFile(file);
             return file;
         }
 
@@ -74,39 +77,40 @@ namespace OMI.Formats.Pck
         }
 
         /// <summary>
-        /// Checks wether a file with <paramref name="filename"/> and <paramref name="type"/> exists
+        /// Checks wether a file with <paramref name="filename"/> and <paramref name="filetype"/> exists
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="type">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
         /// <returns>True when file exists, otherwise false </returns>
-        public bool HasFile(string filename, PckFileType type)
+        public bool HasFile(string filename, PckFileType filetype)
         {
-            return GetFile(filename, type) is PckFileData;
+            return Files.Contains(filename, filetype);
         }
 
         /// <summary>
-        /// Gets the first file that Equals <paramref name="filename"/> and <paramref name="type"/>
+        /// Gets the first file that Equals <paramref name="filename"/> and <paramref name="filetype"/>
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="type">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
         /// <returns>FileData if found, otherwise null</returns>
-        public PckFileData GetFile(string filename, PckFileType type)
+        /// <exception cref="KeyNotFoundException"></exception>
+        public PckFileData GetFile(string filename, PckFileType filetype)
         {
-            return Files[filename, type];
+            return Files[filename, filetype];
         }
 
         /// <summary>
-        /// Tries to get a file with <paramref name="filename"/> and <paramref name="type"/>.
+        /// Tries to get a file with <paramref name="filename"/> and <paramref name="filetype"/>.
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="type">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
         /// <param name="file">If succeeded <paramref name="file"/> will be non-null, otherwise null</param>
         /// <returns>True if succeeded, otherwise false</returns>
-        public bool TryGetFile(string filename, PckFileType type, out PckFileData file)
+        public bool TryGetFile(string filename, PckFileType filetype, out PckFileData file)
         {
             try
             {
-                file = GetFile(filename, type);
+                file = GetFile(filename, filetype);
                 return file is PckFileData;
             }
             catch (KeyNotFoundException)
@@ -114,6 +118,83 @@ namespace OMI.Formats.Pck
                 file = null;
                 return false;
             }
+        }
+
+        private void OnPckFileNameChanging(PckFileData value, string newFilename)
+        {
+            Files[newFilename, value.Filetype] = value;
+            if (Files.Contains(value.Filename, value.Filetype))
+            {
+                Files.Remove(value);
+            }
+        }
+
+        private void OnPckFileTypeChanging(PckFileData value, PckFileType newFiletype)
+        {
+            Files[value.Filename, newFiletype] = value;
+            if (Files.Contains(value.Filename, value.Filetype))
+            {
+                Files.Remove(value);
+            }
+        }
+
+        private void OnMoveFile(PckFileData value)
+        {
+            if (Files.Contains(value.Filename, value.Filetype))
+            {
+                Files.Remove(value);
+            }
+        }
+
+        public PckFileData GetOrCreate(string filename, PckFileType filetype)
+        {
+            if (Files.Contains(filename, filetype))
+            {
+                return Files[filename, filetype];
+            }
+            return new PckFileData(filename, filetype, OnPckFileNameChanging, OnPckFileTypeChanging, OnMoveFile);
+        }
+
+        public bool Contains(string filename, PckFileType filetype)
+        {
+            return Files.Contains(filename, filetype);
+        }
+
+        public void AddFile(PckFileData file)
+        {
+            file.Move();
+            file.SetEvents(OnPckFileNameChanging, OnPckFileTypeChanging, OnMoveFile);
+            Files.Add(file);
+        }
+
+        public IReadOnlyCollection<PckFileData> GetFiles()
+        {
+            return new ReadOnlyCollection<PckFileData>(Files);
+        }
+
+        public bool TryGetValue(string filename, PckFileType filetype, out PckFileData file)
+        {
+            return Files.TryGetValue(filename, filetype, out file);
+        }
+
+        public bool RemoveFile(PckFileData file)
+        {
+            return Files.Remove(file);
+        }
+
+        public void RemoveAll(Predicate<PckFileData> value)
+        {
+            Files.RemoveAll(value);
+        }
+
+        public void InsertFile(int index, PckFileData file)
+        {
+            Files.Insert(index, file);
+        }
+
+        public int IndexOfFile(PckFileData file)
+        {
+            return Files.IndexOf(file);
         }
     }
 }

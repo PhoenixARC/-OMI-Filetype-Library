@@ -118,7 +118,7 @@ namespace OMI.Workers.Pck
                     file.Properties.Add(key, value);
                 }
                 reader.Read(file.Data, 0, file.Size);
-                pckFile.Files.Add(file);
+                pckFile.AddFile(file);
             };
             _files.Clear();
         }

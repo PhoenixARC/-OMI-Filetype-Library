@@ -42,15 +42,16 @@ namespace OMI.Workers.Pck
                 if (_pckFile.HasVerionString)
                     writer.Write(1);
 
-                writer.Write(_pckFile.Files.Count);
-                foreach (var file in _pckFile.Files)
+                writer.Write(_pckFile.FileCount);
+                var files = _pckFile.GetFiles();
+                foreach (var file in files)
                 {
                     writer.Write(file.Size);
                     writer.Write((int)file.Filetype);
                     WriteString(writer, file.Filename);
                 }
 
-                foreach (var file in _pckFile.Files)
+                foreach (var file in files)
                 {
                     writer.Write(file.Properties.Count);
                     foreach (var property in file.Properties)

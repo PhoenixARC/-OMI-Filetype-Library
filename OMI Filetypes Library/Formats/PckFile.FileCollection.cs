@@ -16,11 +16,11 @@ namespace OMI.Formats.Pck
 
         public bool IsReadOnly => false;
 
-        public PckFileData this[string key, PckFileType type]
+        public PckFileData this[string filename, PckFileType type]
         {
             get
             {
-                var storeKey = GetStoreKey(key, type);
+                var storeKey = GetStorageKey(filename, type);
                 if (!_files.Contains(storeKey))
                 {
                     throw new KeyNotFoundException(storeKey.ToString());
@@ -30,7 +30,7 @@ namespace OMI.Formats.Pck
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
-                _files[GetStoreKey(key, type)] = value;
+                _files[GetStorageKey(filename, type)] = value;
             }
         }
 
@@ -46,7 +46,7 @@ namespace OMI.Formats.Pck
 
         public void Add(PckFileData value)
         {
-            var key = GetStoreKey(value.Filename, value.Filetype);
+            var key = GetStorageKey(value.Filename, value.Filetype);
             if (_files.Contains(key))
             {
                 if (this[value.Filename, value.Filetype].Equals(value))
@@ -80,17 +80,17 @@ namespace OMI.Formats.Pck
 
         public bool Contains(string filename, PckFileType filetype)
         {
-            return _files.Contains(GetStoreKey(filename, filetype));
+            return _files.Contains(GetStorageKey(filename, filetype));
         }
 
-        private object GetStoreKey(string key, PckFileType fileType)
+        private object GetStorageKey(string key, PckFileType fileType)
         {
             return $"{key}_{fileType}";
         }
 
         private object GetStoreKey(PckFileData item)
         {
-            return GetStoreKey(item.Filename, item.Filetype);
+            return GetStorageKey(item.Filename, item.Filetype);
         }
 
         public void CopyTo(PckFileData[] array, int arrayIndex)
@@ -122,11 +122,11 @@ namespace OMI.Formats.Pck
             _files.Insert(index, GetStoreKey(item), item);
         }
 
-        private bool Remove(string key, PckFileType filetype)
+        internal bool Remove(string filename, PckFileType filetype)
         {
-            if (Contains(key, filetype))
+            if (Contains(filename, filetype))
             {
-                _files.Remove(GetStoreKey(key, filetype));
+                _files.Remove(GetStorageKey(filename, filetype));
                 return true;
             }
             return false;
@@ -135,7 +135,10 @@ namespace OMI.Formats.Pck
         public bool Remove(PckFileData item)
         {
             if (item is not null)
+            {
+                item.SetEvents(null, null, null);
                 return Remove(item.Filename, item.Filetype);
+            }
             return false;
         }
 
@@ -161,10 +164,10 @@ namespace OMI.Formats.Pck
 
         public void RemoveAt(int index)
         {
-            Remove(this[index]);
+            _files.RemoveAt(index);
         }
 
-        public bool TryGetValue(string key, PckFileType fileType, out PckFileData value)
+        internal bool TryGetValue(string key, PckFileType fileType, out PckFileData value)
         {
             if (Contains(key, fileType))
             {
