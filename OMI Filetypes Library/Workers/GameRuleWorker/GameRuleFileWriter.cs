@@ -32,7 +32,7 @@ namespace OMI.Workers.GameRule
         {
             _compressionLvl = compressionLvl;
             _compressionType = compressionType;
-            if (grf.FileHeader.unknownData[3] != 0)
+            if (grf.Header.unknownData[3] != 0)
                 throw new NotImplementedException("World grf saving is currently unsupported");
             _grfFile = grf;
             StringLookUpTable = new List<string>();
@@ -109,7 +109,7 @@ namespace OMI.Workers.GameRule
         private void MakeAndWriteCrc(EndiannessAwareBinaryWriter writer, byte[] data)
         {
             uint crc = CRC32.CRC(data);
-            if (crc != _grfFile.FileHeader.Crc)
+            if (crc != _grfFile.Header.Crc)
             {
                 writer.BaseStream.Position = 3;
                 writer.Write(crc);
@@ -124,7 +124,7 @@ namespace OMI.Workers.GameRule
                 _compressionLvl > GameRuleFile.CompressionLevel.CompressedRleCrc)
                 throw new ArgumentOutOfRangeException(nameof(_compressionLvl));
             writer.Write((byte)_compressionLvl);
-            writer.Write(_grfFile.FileHeader.Crc);
+            writer.Write(_grfFile.Header.Crc);
             writer.Write((byte)0);
             writer.Write((byte)0);
             writer.Write((byte)0);

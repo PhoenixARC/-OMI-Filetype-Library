@@ -90,7 +90,7 @@ namespace OMI.Formats.GameRule
 
         public readonly GameRule Root = null;
 
-        public GameRuleFileHeader FileHeader = null;
+        public readonly GameRuleFileHeader Header = null;
 
         public enum CompressionLevel : byte
         {
@@ -99,6 +99,8 @@ namespace OMI.Formats.GameRule
             CompressedRle    = 2,
             CompressedRleCrc = 3,
         }
+
+        public CompressionType Compression { get; set; }
 
         public enum CompressionType
         {
@@ -119,18 +121,18 @@ namespace OMI.Formats.GameRule
         /// <summary>
         /// Initializes a new <see cref="GameRuleFile"/> with the compression level set to <see cref="CompressionLevel.None"/>.
         /// </summary>
-        public GameRuleFile() : this(0xffffffff, false, CompressionLevel.None)
+        public GameRuleFile() : this(new GameRuleFileHeader(0xffffffff, CompressionLevel.None, null))
         {}
 
-        public GameRuleFile(uint crc, bool isWolrd, CompressionLevel compressionLevel)
-            : this(crc, isWolrd, compressionLevel, CompressionType.Zlib)
+        public GameRuleFile(GameRuleFileHeader header)
+            : this(header, CompressionType.Zlib)
         {}
 
-        public GameRuleFile(uint crc, bool isWolrd, CompressionLevel compressionLevel, CompressionType compressionType)
+        public GameRuleFile(GameRuleFileHeader header, CompressionType compressionType)
         {
             Root = new GameRule("__ROOT__", null);
-            FileHeader = new GameRuleFileHeader(crc, compressionLevel, new byte[4]);
-            FileHeader.CompressionType = compressionType;
+            Header = header;
+            Compression = compressionType;
         }
 
         public class GameRule
@@ -264,7 +266,8 @@ namespace OMI.Formats.GameRule
             /// <returns>Added <see cref="GameRule"/></returns>
             public GameRule AddRule(string gameRuleName, bool validate)
             {
-                if (validate && !ValidGameRules.Contains(gameRuleName)) return null;
+                if (validate && !ValidGameRules.Contains(gameRuleName))
+                    throw new ArgumentException(gameRuleName + " is not a valid rule name.");
                 var rule = new GameRule(gameRuleName, this);
                 ChildRules.Add(rule);
                 return rule;

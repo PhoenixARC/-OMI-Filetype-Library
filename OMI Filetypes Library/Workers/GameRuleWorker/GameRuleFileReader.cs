@@ -41,17 +41,18 @@ namespace OMI.Workers.GameRule
             using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, Endianness.BigEndian))
             {
                 var header = ReadHeader(reader);
-                ReadBody(header, reader);
+                _file = new GameRuleFile(header);
+                ReadBody(_file, reader);
             }
             return _file;
         }
 
         private GameRuleFileHeader ReadHeader(EndiannessAwareBinaryReader reader)
         {
-            int x = reader.ReadInt16();
-            if (((x >> 31) | x) == 0)
+            ushort x = reader.ReadUInt16();
+            if (x == 0)
             {
-                // 14 bools ?...
+                // skip header
                 reader.ReadBytes(14);
                 return new GameRuleFileHeader(0xffffffff, GameRuleFile.CompressionLevel.None, new byte[4]);
             }
@@ -65,23 +66,21 @@ namespace OMI.Workers.GameRule
                 //compressionLevel = (GameRuleFile.CompressionLevel)byte4;
                 throw new NotSupportedException("World grf's are not currently not supported.");
             }
-            _file = new GameRuleFile(crc, unknownDataBuffer[3] > 0, compressionLevel);
-
             return new GameRuleFileHeader(crc, compressionLevel, unknownDataBuffer);
         }
 
-        private void ReadBody(GameRuleFileHeader header, EndiannessAwareBinaryReader reader)
+        private void ReadBody(GameRuleFile file, EndiannessAwareBinaryReader reader)
         {
-            if (header.CompressionLevel != GameRuleFile.CompressionLevel.None /*||
+            if (file.Header.CompressionLevel != GameRuleFile.CompressionLevel.None /*||
                 header.unknownData[3] != 0*/)
             {
-                reader = DecompressBody(header, reader);
+                reader = DecompressBody(file.Header, reader);
             }
 
             ReadStringLookUpTable(reader);
-            string Name = GetString(reader);
-            Debug.WriteLine(string.Format("Root Name: {0}", Name), category: nameof(GameRuleFileReader.ReadBody));
-            ReadGameRuleHierarchy(reader, _file.Root);
+            string RootName = GetString(reader);
+            Debug.WriteLine($"Root Name = {RootName}", category: nameof(GameRuleFileReader) +"."+nameof(ReadBody));
+            ReadGameRuleHierarchy(reader, file.Root);
         }
 
         private EndiannessAwareBinaryReader DecompressBody(GameRuleFileHeader fileHeader, EndiannessAwareBinaryReader reader)
@@ -126,6 +125,7 @@ namespace OMI.Workers.GameRule
             var outputStream = new MemoryStream();
             decompressedStream.CopyTo(outputStream);
             outputStream.Position = 0;
+            decompressedStream.Dispose();
             return outputStream;
         }
 
