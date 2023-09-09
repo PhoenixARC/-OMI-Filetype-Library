@@ -46,6 +46,7 @@
     <Compile Include="Endianness.cs" />
     <Compile Include="Extentions\EndiannessAwareBinaryExtention.cs" />
     <Compile Include="Formats\BehaviourFile.cs" />
+    <Compile Include="Formats\MilesSoundSystemCompressed.cs" />
     <Compile Include="Formats\PckFileType.cs" />
     <Compile Include="Formats\PckFileData.cs" />
     <Compile Include="Formats\FourjUserInterface.cs" />
@@ -84,6 +85,8 @@
     <Compile Include="Workers\ModelsWorker\ModelFileWriter.cs" />
     <Compile Include="Workers\ModelsWorker\ModelFileReader.cs" />
     <Compile Include="Formats\Model.cs" />
+    <Compile Include="Workers\MsscmpWorker\MSSCMPFileReader.cs" />
+    <Compile Include="Workers\MsscmpWorker\MSSCMPFileWriter.cs" />
     <Compile Include="Workers\PckWorker\PckFileReader.cs" />
     <Compile Include="Workers\PckWorker\PckFileWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
