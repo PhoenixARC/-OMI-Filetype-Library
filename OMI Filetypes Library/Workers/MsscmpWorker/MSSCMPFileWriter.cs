@@ -29,24 +29,7 @@ namespace OMI.Workers.MSSCMP
 
         public void WriteToStream(Stream stream)
         {
-            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
-            {
-                writer.Write(_archive.Count);
-                int currentOffset = 4 + _archive.Keys.ToArray().Sum(key => 10 + key.Length);
-                foreach (var pair in _archive)
-                {
-                    int size = pair.Value.Length;
-                    writer.Write((short)pair.Key.Length);
-                    writer.WriteString(pair.Key, Encoding.ASCII);
-                    writer.Write(currentOffset);
-                    writer.Write(size);
-                    currentOffset += size;
-                }
-                foreach (byte[] data in _archive.Values)
-                {
-                    writer.Write(data);
-                }
-            }
+            throw new NotImplementedException();
         }
     }
 }

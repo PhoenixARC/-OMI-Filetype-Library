@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
-using OMI.Formats.Archive;
 using OMI.Formats.MilesSoundSystemCompressed;
-using OMI.Workers;
 
 namespace OMI.Workers.MSSCMP
 {
@@ -24,126 +23,156 @@ namespace OMI.Workers.MSSCMP
         public MSSCMPFile FromStream(Stream stream)
         {
             MSSCMPFile _archive = new MSSCMPFile();
-            using (EndiannessAwareBinaryReader reader = new EndiannessAwareBinaryReader(stream, Endianness.BigEndian))
+
+            byte[] buffer = new byte[4];
+            stream.Read(buffer, 0, 4);
+            int signature = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
+
+            if (signature != MSSCMPFile.SIGN_BE && signature != MSSCMPFile.SIGN_LE)
+                throw new Exception("Not a sound bank file.", new Exception($"{signature:x}"));
+
+            var endianness = signature == MSSCMPFile.SIGN_BE ? Endianness.BigEndian : Endianness.LittleEndian;
+
+            using (EndiannessAwareBinaryReader reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, endianness))
             {
-                reader.ReadInt32();
-                _archive.version = reader.ReadInt32();
-                int InfoSize = reader.ReadInt32();
-                reader.BaseStream.Position += 8;
-                long InfoOffset = reader.ReadInt32();
-                reader.BaseStream.Position += 12;
-                
-                if (_archive.version >= 8)
+                // Header
+                _archive.Version = reader.ReadInt32();
+                int memoryUsage = reader.ReadInt32();
+                _ = reader.ReadInt32(); // ignore
+
+                string filename = ReadString(reader); // ignore
+
+                if (_archive.Version >= 8)
                     reader.BaseStream.Position += 4;
+
+                int eventOffset = reader.ReadInt32();
+                _ = reader.ReadInt32(); // unknown
+                _ = reader.ReadInt32(); // unknown
+                int sourceOffset = reader.ReadInt32();
+
+                if (_archive.Version >= 8)
+                    reader.BaseStream.Position += 4;
+
+                int eventCount = reader.ReadInt32();
+                _ = reader.ReadInt32(); // unknown
+                _ = reader.ReadInt32(); // unknown
+                int sourceCount = reader.ReadInt32();
+
+                Debug.WriteLine($"Version: {_archive.Version}");
+                Debug.WriteLine($"Memory usage: {memoryUsage:x}");
+                Debug.WriteLine($"Event offset: {eventOffset}:x");
+                Debug.WriteLine($"Source offset: {sourceOffset:x}");
+                // Header End
                 
-                Console.WriteLine("Version:     " + _archive.version);
-                Console.WriteLine("Info Offset: " + InfoOffset);
-                Console.WriteLine("Info Size:   " + InfoSize);
+                ReadEvents(reader, eventOffset, eventCount);
 
-                long Events = reader.ReadInt32();
-                long FilesOffset2 = reader.ReadInt32();
-                long FilesOffset3 = reader.ReadInt32();
-                long Sources = reader.ReadInt32();
-
-                reader.BaseStream.Position = InfoOffset;
-
-                Console.WriteLine("Events:  " + Events);
-                for(int i = 0; i < Events; i++)
-                {
-                    KeyValuePair<int, int>  kvp = GetFields(reader, InfoOffset);
-
-                    /*Console.WriteLine(" ├─Name:        " + ReadStringUntil(reader, kvp.Value, 0x00));
-                    Console.WriteLine(" ├─Properties:  " + ReadStringUntil(reader, kvp.Key, 0x00));
-                    Console.WriteLine(" ├─NameOffset:  " + kvp.Value);
-                    Console.WriteLine(" ├─PropertyOffset:  " + kvp.Key);
-                    Console.WriteLine(" │");*/
-                }
-                Console.WriteLine("Sources:  " + Sources);
-                for (int i = 0; i < Sources; i++)
-                {
-                    Console.WriteLine(" ├─Reading From:      " + reader.BaseStream.Position);
-                    int PathOff = reader.ReadInt32();
-                    int InfoOff = reader.ReadInt32();
-                    Console.WriteLine(" ├─PathOffset:        " + PathOff);
-                    Console.WriteLine(" ├─InfoOffset:        " + InfoOff);
-                    ReadSource(reader, PathOff);
-                }
+                ReadSources(reader, sourceOffset, sourceCount);
             }
             return _archive;
         }
 
-        public void ReadSource(EndiannessAwareBinaryReader reader, long offset1)
+        private void ReadEvents(EndiannessAwareBinaryReader reader, int eventOffset, int eventCount)
         {
-            long currentOffset = reader.BaseStream.Position;
-            int receivedSourceNameOffset = reader.ReadInt32();
-            int AfterNameOffset = reader.ReadInt32();
-
-            if (offset1 != receivedSourceNameOffset)
+            reader.BaseStream.Position = eventOffset;
+            Debug.WriteLine("Events: " + eventCount);
+            for (int i = 0; i < eventCount; i++)
             {
-                //throw new Exception($"Unexpected offset difference: Expected {offset1}(0x{offset1:x}) got {receivedSourceNameOffset}(0x{receivedSourceNameOffset:x})");
+                long eventNameOffset = reader.ReadInt32();
+                long eventDetailsOffset = reader.ReadInt32();
+
+                Debug.WriteLine($" ├─[Name](Offset:{eventNameOffset:x}):        {ReadStringAt(reader, eventNameOffset)}");
+                Debug.WriteLine($" ├─[Properties](Offset:{eventDetailsOffset:x}):  {ReadStringAt(reader, eventDetailsOffset)}");
+                Debug.WriteLine(" │");
             }
-
-            string Pathname = ReadStringUntil(reader, offset1, 0x00);
-            string FileName = ReadStringUntil(reader, AfterNameOffset + currentOffset, 0x00);
-
-            Console.WriteLine(" │ ├─StartOffset:  " + currentOffset);
-            Console.WriteLine(" │ ├─afternameOffset:  " + AfterNameOffset);
-            Console.WriteLine(" │ ├─PathName:  " + Pathname);
-            Console.WriteLine(" │ ├─FileName:  " + FileName);
-            Console.WriteLine(" │ ├─SourceName:  " + receivedSourceNameOffset);
-            Console.WriteLine(" │ ├─0x8:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─PlayAction:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x10:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─sampleRate:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─fileSize:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─Channels:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x20:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─durationMilliseconds:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x28:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x2C:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x30:  " + reader.ReadInt32());
-            Console.WriteLine(" │ ├─0x34:  " + reader.ReadSingle());
-            Console.WriteLine(" │ ├─0x38:  " + reader.ReadInt32());
-            Console.ReadLine();
-        }
-        public KeyValuePair<int, int> GetFields(EndiannessAwareBinaryReader reader, long offset)
-        {
-            long NameOffset = reader.ReadInt32();
-            long SizeOffset = reader.ReadInt32();
-
-
-
-            return new KeyValuePair<int, int>((int)SizeOffset, (int)NameOffset);
         }
 
-        public string ReadStringUntil(EndiannessAwareBinaryReader reader, long offset, byte seperator)
+        public void ReadSources(EndiannessAwareBinaryReader reader, int sourceOffset, int sourceCount)
         {
-            List<byte> bits = new List<byte>();
-            long currentPosition = reader.BaseStream.Position;
+            reader.BaseStream.Position = sourceOffset;
+            Debug.WriteLine("Sources: " + sourceCount);
+            for (int i = 0; i < sourceCount; i++)
+            {
+                int sourcePathOffset = reader.ReadInt32();
+                int infoOffset = reader.ReadInt32();
+                Debug.WriteLine(" ├─PathOffset:        " + sourcePathOffset);
+                Debug.WriteLine(" ├─InfoOffset:        " + infoOffset);
+                ReadBankAt(reader, infoOffset, sourcePathOffset);
+            }
+        }
+
+        private void ReadBankAt(EndiannessAwareBinaryReader reader, long offset, int sourceOffset)
+        {
+            long origin = reader.BaseStream.Position;
             reader.BaseStream.Position = offset;
-            while (reader.PeekChar() != seperator)
+            Debug.WriteLine(" ├─Reading From:      " + offset);
+            int receivedSourceNameOffset = reader.ReadInt32();
+            int filenameRelativeOffset = reader.ReadInt32();
+
+            if (sourceOffset != receivedSourceNameOffset)
             {
-                    bits.Add(reader.ReadByte());
+                throw new Exception($"Unexpected offset difference: Expected {sourceOffset}(0x{sourceOffset:x}) but got {receivedSourceNameOffset}(0x{receivedSourceNameOffset:x})");
             }
-            reader.BaseStream.Position = currentPosition;
-            string result = Encoding.UTF8.GetString(bits.ToArray());
+
+            string pathName = ReadStringAt(reader, sourceOffset);
+            string fileName = ReadStringAt(reader, filenameRelativeOffset + offset);
+
+            Debug.WriteLine(" │ ├─StartOffset: " + offset);
+            Debug.WriteLine(" │ ├─filenameRelativeOffset: " + filenameRelativeOffset);
+            Debug.WriteLine(" │ ├─Path: " + pathName);
+            Debug.WriteLine(" │ ├─Filename: " + fileName);
+            Debug.WriteLine(" │ ├─SourceName: " + receivedSourceNameOffset);
+            Debug.WriteLine(" │ ├─0x8: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─PlayAction: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x10: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─sampleRate: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─fileSize: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─Channels: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x20: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─durationMilliseconds: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x28: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x2C: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x30: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x34: " + reader.ReadSingle());
+            Debug.WriteLine(" │ ├─0x38: " + reader.ReadInt32());
+
+            reader.BaseStream.Position = origin;
+        }
+
+        // TODO: check encoding for 'IsSingleByte'
+        private int GetStringLength(Stream stream)
+        {
+            long begin = stream.Position;
+
+            if (stream.ReadByte() == '\0')
+            {
+                stream.Position -= 1;
+                return 0;
+            }
+
+            int next;
+            while ((next = stream.ReadByte()) != -1 && next != '\0')
+            { }
+
+            int length = (int)(stream.Position - begin);
+            stream.Position = begin;
+            return length;
+        }
+
+        internal string ReadString(EndiannessAwareBinaryReader reader)
+        {
+            int length = GetStringLength(reader.BaseStream);
+            return reader.ReadString(length);
+        }
+
+        internal string ReadStringAt(EndiannessAwareBinaryReader reader, long offset)
+        {
+            long origin = reader.BaseStream.Position;
+            reader.BaseStream.Position = offset;
+
+            string result = ReadString(reader);
+
+            reader.BaseStream.Position = origin;
             return result;
-        }
-
-        private string ReadString(EndiannessAwareBinaryReader reader)
-        {
-            short length = reader.ReadInt16();
-            return reader.ReadString(length, Encoding.ASCII);
-        }
-
-        private byte[] ReadBytesFromPosition(Stream stream, int position, int size)
-        {
-            long origin = stream.Position;
-            if (stream.Seek(position, SeekOrigin.Begin) != position) throw new Exception();
-            byte[] bytes = new byte[size];
-            stream.Read(bytes, 0, size);
-            if (stream.Seek(origin, SeekOrigin.Begin) != origin) throw new Exception();
-            return bytes;
         }
 
         object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);

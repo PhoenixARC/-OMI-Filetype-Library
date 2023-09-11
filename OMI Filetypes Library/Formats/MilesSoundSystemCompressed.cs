@@ -14,6 +14,9 @@ namespace OMI.Formats.MilesSoundSystemCompressed
 {
     public class MSSCMPFile : ConsoleArchive
     {
-        public long version;
+        internal const uint SIGN_LE = 0x4B4E4142;
+        internal const uint SIGN_BE = 0x42414E4B;
+
+        public int Version { get; set; }
     }
 }
