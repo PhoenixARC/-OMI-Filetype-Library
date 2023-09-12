@@ -29,7 +29,40 @@ namespace OMI.Workers.MSSCMP
 
         public void WriteToStream(Stream stream)
         {
+
             throw new NotImplementedException();
+
+
+            var endianness =  Endianness.BigEndian;
+
+            using (EndiannessAwareBinaryWriter writer = new EndiannessAwareBinaryWriter(stream, Encoding.ASCII, endianness))
+            {
+                writer.Write(MSSCMPFile.SIGN_BE);
+                writer.Write(_archive.Version);
+                writer.Write(0); // unsure how to calculate Memory usage?
+                writer.Write(0);
+
+                if(_archive.Version >= 8)
+                    writer.Write(0);
+
+                writer.Write(0); // calculated Events offset
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write(0); // calculated sources offset
+
+                if (_archive.Version >= 8)
+                    writer.Write(0);
+
+                writer.Write(_archive.Events.Count);
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write(_archive.Sources.Count);
+
+                //TODO: Reconstruct events and sources, & calculate their respective offsets
+
+            }
+
+
         }
     }
 }

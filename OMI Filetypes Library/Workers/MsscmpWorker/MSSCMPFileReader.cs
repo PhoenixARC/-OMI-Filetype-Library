@@ -23,7 +23,6 @@ namespace OMI.Workers.MSSCMP
         public MSSCMPFile FromStream(Stream stream)
         {
             MSSCMPFile _archive = new MSSCMPFile();
-
             byte[] buffer = new byte[4];
             stream.Read(buffer, 0, 4);
             int signature = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
@@ -60,19 +59,22 @@ namespace OMI.Workers.MSSCMP
 
                 Debug.WriteLine($"Version: {_archive.Version}");
                 Debug.WriteLine($"Memory usage: {memoryUsage:x}");
-                Debug.WriteLine($"Event offset: {eventOffset}:x");
+                Debug.WriteLine($"Event offset: {eventOffset:x}");
                 Debug.WriteLine($"Source offset: {sourceOffset:x}");
                 // Header End
-                
-                ReadEvents(reader, eventOffset, eventCount);
 
-                ReadSources(reader, sourceOffset, sourceCount);
+                _archive.Events = ReadEvents(reader, eventOffset, eventCount);
+
+                _archive.Sources = ReadSources(reader, sourceOffset, sourceCount);
             }
+            System.GC.Collect();
             return _archive;
         }
 
-        private void ReadEvents(EndiannessAwareBinaryReader reader, int eventOffset, int eventCount)
+        private Dictionary<string, string[]> ReadEvents(EndiannessAwareBinaryReader reader, int eventOffset, int eventCount)
         {
+            Dictionary<string, string[]> Events = new Dictionary<string, string[]>();
+
             reader.BaseStream.Position = eventOffset;
             Debug.WriteLine("Events: " + eventCount);
             for (int i = 0; i < eventCount; i++)
@@ -80,14 +82,19 @@ namespace OMI.Workers.MSSCMP
                 long eventNameOffset = reader.ReadInt32();
                 long eventDetailsOffset = reader.ReadInt32();
 
+                Events.Add(ReadStringAt(reader, eventNameOffset), ReadStringAt(reader, eventDetailsOffset).Split(';'));
+
                 Debug.WriteLine($" ├─[Name](Offset:{eventNameOffset:x}):        {ReadStringAt(reader, eventNameOffset)}");
                 Debug.WriteLine($" ├─[Properties](Offset:{eventDetailsOffset:x}):  {ReadStringAt(reader, eventDetailsOffset)}");
                 Debug.WriteLine(" │");
             }
+            return Events;
         }
 
-        public void ReadSources(EndiannessAwareBinaryReader reader, int sourceOffset, int sourceCount)
+        public Dictionary<string, Dictionary<string, object>> ReadSources(EndiannessAwareBinaryReader reader, int sourceOffset, int sourceCount)
         {
+
+            Dictionary<string, Dictionary<string, object>> Sources = new Dictionary<string, Dictionary<string, object>>();
             reader.BaseStream.Position = sourceOffset;
             Debug.WriteLine("Sources: " + sourceCount);
             for (int i = 0; i < sourceCount; i++)
@@ -96,12 +103,15 @@ namespace OMI.Workers.MSSCMP
                 int infoOffset = reader.ReadInt32();
                 Debug.WriteLine(" ├─PathOffset:        " + sourcePathOffset);
                 Debug.WriteLine(" ├─InfoOffset:        " + infoOffset);
-                ReadBankAt(reader, infoOffset, sourcePathOffset);
+                Dictionary<string, object> source = ReadBankAt(reader, infoOffset, sourcePathOffset);
+                Sources.Add((string)source["path"], source);
             }
+            return Sources;
         }
 
-        private void ReadBankAt(EndiannessAwareBinaryReader reader, long offset, int sourceOffset)
+        private Dictionary<string, object> ReadBankAt(EndiannessAwareBinaryReader reader, long offset, int sourceOffset)
         {
+            Dictionary<string, object> Source = new Dictionary<string, object>();
             long origin = reader.BaseStream.Position;
             reader.BaseStream.Position = offset;
             Debug.WriteLine(" ├─Reading From:      " + offset);
@@ -115,27 +125,53 @@ namespace OMI.Workers.MSSCMP
 
             string pathName = ReadStringAt(reader, sourceOffset);
             string fileName = ReadStringAt(reader, filenameRelativeOffset + offset);
+            
+
+            Source.Add("path", pathName);
+            Source.Add("file", fileName);
+            Source.Add("0x8", reader.ReadInt32());
+            Source.Add("PlayAction", reader.ReadInt32());
+            Source.Add("0x10", reader.ReadInt32());
+            Source.Add("sampleRate", reader.ReadInt32());
+            Source.Add("fileSize", reader.ReadInt32());
+            Source.Add("Channels", reader.ReadInt32());
+            Source.Add("0x20", reader.ReadInt32());
+            Source.Add("durationMilliseconds", reader.ReadInt32());
+            Source.Add("0x28", reader.ReadInt32());
+            Source.Add("0x2C", reader.ReadInt32());
+            Source.Add("0x30", reader.ReadInt32());
+            Source.Add("0x34", reader.ReadSingle());
+            Source.Add("0x38", reader.ReadInt32());
+
+            int DataOffset = int.Parse(((string)Source["file"]).Split('*')[2].Split('.')[0]);
+
+
+            Source.Add("data", ReadBytesAt(reader, DataOffset, (int)Source["fileSize"]));
+
+
 
             Debug.WriteLine(" │ ├─StartOffset: " + offset);
             Debug.WriteLine(" │ ├─filenameRelativeOffset: " + filenameRelativeOffset);
-            Debug.WriteLine(" │ ├─Path: " + pathName);
-            Debug.WriteLine(" │ ├─Filename: " + fileName);
+            Debug.WriteLine(" │ ├─Path: " + Source["path"]);
+            Debug.WriteLine(" │ ├─Filename: " + Source["file"]);
             Debug.WriteLine(" │ ├─SourceName: " + receivedSourceNameOffset);
-            Debug.WriteLine(" │ ├─0x8: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─PlayAction: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x10: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─sampleRate: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─fileSize: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─Channels: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x20: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─durationMilliseconds: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x28: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x2C: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x30: " + reader.ReadInt32());
-            Debug.WriteLine(" │ ├─0x34: " + reader.ReadSingle());
-            Debug.WriteLine(" │ ├─0x38: " + reader.ReadInt32());
+            Debug.WriteLine(" │ ├─0x8: " + Source["0x8"]);
+            Debug.WriteLine(" │ ├─PlayAction: " + Source["PlayAction"]);
+            Debug.WriteLine(" │ ├─0x10: " + Source["0x10"]);
+            Debug.WriteLine(" │ ├─sampleRate: " + Source["sampleRate"]);
+            Debug.WriteLine(" │ ├─fileSize: " + Source["fileSize"]);
+            Debug.WriteLine(" │ ├─Channels: " + Source["Channels"]);
+            Debug.WriteLine(" │ ├─0x20: " + Source["0x20"]);
+            Debug.WriteLine(" │ ├─durationMilliseconds: " + Source["durationMilliseconds"]);
+            Debug.WriteLine(" │ ├─0x28: " + Source["0x28"]);
+            Debug.WriteLine(" │ ├─0x2C: " + Source["0x2C"]);
+            Debug.WriteLine(" │ ├─0x30: " + Source["0x30"]);
+            Debug.WriteLine(" │ ├─0x34: " + Source["0x34"]);
+            Debug.WriteLine(" │ ├─0x38: " + Source["0x38"]);
 
             reader.BaseStream.Position = origin;
+
+            return Source;
         }
 
         // TODO: check encoding for 'IsSingleByte'
@@ -175,6 +211,20 @@ namespace OMI.Workers.MSSCMP
             return result;
         }
 
+        private byte[] ReadBytesAt(EndiannessAwareBinaryReader reader, long offset, int size)
+        {
+            long origin = reader.BaseStream.Position;
+
+            byte[] bytes = new byte[size];
+
+            reader.BaseStream.Position = offset;
+
+            for(int i = 0; i < size; i++)
+                bytes[i] = reader.ReadByte();
+
+            reader.BaseStream.Position = origin;
+            return bytes;
+        }
         object IDataFormatReader.FromStream(Stream stream) => FromStream(stream);
 
         object IDataFormatReader.FromFile(string filename) => FromFile(filename);
