@@ -68,21 +68,91 @@ namespace OMI.Workers.MSSCMP
                 _archive.Sources = ReadSources(reader, sourceOffset, sourceCount);
             }
             System.GC.Collect();
+
             return _archive;
         }
 
-        private Dictionary<string, string[]> ReadEvents(EndiannessAwareBinaryReader reader, int eventOffset, int eventCount)
+        private Dictionary<string, MilesSoundEvent> ReadEvents(EndiannessAwareBinaryReader reader, int eventOffset, int eventCount)
         {
-            Dictionary<string, string[]> Events = new Dictionary<string, string[]>();
+            Dictionary<string, MilesSoundEvent> Events = new Dictionary<string, MilesSoundEvent>();
+
 
             reader.BaseStream.Position = eventOffset;
             Debug.WriteLine("Events: " + eventCount);
             for (int i = 0; i < eventCount; i++)
             {
+                MilesSoundEvent Event = new MilesSoundEvent();
+
                 long eventNameOffset = reader.ReadInt32();
                 long eventDetailsOffset = reader.ReadInt32();
 
-                Events.Add(ReadStringAt(reader, eventNameOffset), ReadStringAt(reader, eventDetailsOffset).Split(';'));
+                string[] eventInfo = ReadStringAt(reader, eventDetailsOffset).Split(';');
+
+                if(eventInfo.Length < 27 && eventInfo.Length != 6)
+                {
+                    throw new Exception($"Unexpected EventInfo size: Expected 27 or 6, but got {eventInfo.Length}.");
+                }
+
+                Dictionary<string, int> SoundPaths = new Dictionary<string, int>();
+
+                string[] Sounds = eventInfo[3].Split(':');
+                if (eventInfo.Length == 6)
+                {
+                    Sounds = eventInfo[4].Split(':');
+                    for (int y = 0; y < (Sounds.Length); y ++)
+                    {
+                        if(!SoundPaths.ContainsKey(Sounds[y]))
+                            SoundPaths.Add(Sounds[y], 0);
+                    }
+                }
+                else
+                {
+                    for (int y = 0; y <= (Sounds.Length / 2); y += 2)
+                    {
+                        SoundPaths.Add(Sounds[y], int.Parse(Sounds[y + 1]));
+                    }
+                }
+
+
+                Event.unknown1 = int.Parse(eventInfo[0]);
+                Event.unknown2 = int.Parse(eventInfo[1]);
+                Event.unknown3 = int.Parse(eventInfo[2]);
+                if (eventInfo.Length != 6)
+                {
+                    Event.IsCache = false;
+                    Event.SoundPaths = SoundPaths;
+                    Event.unknown4 = eventInfo[4];
+                    Event.unknown5 = eventInfo[5];
+                    Event.unknown6 = eventInfo[6];
+                    Event.unknown7 = eventInfo[7];
+                    Event.unknown8 = eventInfo[8];
+                    Event.unknown9 = eventInfo[9];
+                    Event.unknown10 = eventInfo[10];
+                    Event.unknown11 = int.Parse(eventInfo[11]);
+                    Event.unknown12 = int.Parse(eventInfo[12]);
+                    Event.unknown13 = int.Parse(eventInfo[13]);
+                    Event.unknown14 = int.Parse(eventInfo[14]);
+                    Event.unknown15 = int.Parse(eventInfo[15]);
+                    Event.unknown16 = int.Parse(eventInfo[16]);
+                    Event.unknown17 = int.Parse(eventInfo[17]);
+                    Event.unknown18 = eventInfo[18];
+                    Event.unknown19 = float.Parse(eventInfo[19]);
+                    Event.unknown20 = float.Parse(eventInfo[20]);
+                    Event.unknown21 = float.Parse(eventInfo[21]);
+                    Event.unknown22 = float.Parse(eventInfo[22]);
+                    Event.unknown23 = float.Parse(eventInfo[23]);
+                    Event.unknown24 = int.Parse(eventInfo[24]);
+                    Event.unknown25 = int.Parse(eventInfo[25]);
+                }
+                else
+                {
+                    Event.IsCache = true;
+                    Event.SoundPaths = SoundPaths;
+                    Event.unknown4 = eventInfo[3];
+                    Event.unknown5 = eventInfo[5];
+                }
+
+                Events.Add(ReadStringAt(reader, eventNameOffset), Event);
 
                 Debug.WriteLine($" ├─[Name](Offset:{eventNameOffset:x}):        {ReadStringAt(reader, eventNameOffset)}");
                 Debug.WriteLine($" ├─[Properties](Offset:{eventDetailsOffset:x}):  {ReadStringAt(reader, eventDetailsOffset)}");
@@ -91,10 +161,9 @@ namespace OMI.Workers.MSSCMP
             return Events;
         }
 
-        public Dictionary<string, Dictionary<string, object>> ReadSources(EndiannessAwareBinaryReader reader, int sourceOffset, int sourceCount)
+        public Dictionary<string, MilesSoundSource> ReadSources(EndiannessAwareBinaryReader reader, int sourceOffset, int sourceCount)
         {
-
-            Dictionary<string, Dictionary<string, object>> Sources = new Dictionary<string, Dictionary<string, object>>();
+            Dictionary<string, MilesSoundSource> Sources = new Dictionary<string, MilesSoundSource>();
             reader.BaseStream.Position = sourceOffset;
             Debug.WriteLine("Sources: " + sourceCount);
             for (int i = 0; i < sourceCount; i++)
@@ -103,18 +172,21 @@ namespace OMI.Workers.MSSCMP
                 int infoOffset = reader.ReadInt32();
                 Debug.WriteLine(" ├─PathOffset:        " + sourcePathOffset);
                 Debug.WriteLine(" ├─InfoOffset:        " + infoOffset);
-                Dictionary<string, object> source = ReadBankAt(reader, infoOffset, sourcePathOffset);
-                Sources.Add((string)source["path"], source);
+                MilesSoundSource source = ReadBankAt(reader, infoOffset, sourcePathOffset);
+                Sources.Add(source.pathName, source);
             }
             return Sources;
         }
 
-        private Dictionary<string, object> ReadBankAt(EndiannessAwareBinaryReader reader, long offset, int sourceOffset)
+        private MilesSoundSource ReadBankAt(EndiannessAwareBinaryReader reader, long offset, int sourceOffset)
         {
-            Dictionary<string, object> Source = new Dictionary<string, object>();
+            MilesSoundSource source = new MilesSoundSource();
+
             long origin = reader.BaseStream.Position;
             reader.BaseStream.Position = offset;
+
             Debug.WriteLine(" ├─Reading From:      " + offset);
+
             int receivedSourceNameOffset = reader.ReadInt32();
             int filenameRelativeOffset = reader.ReadInt32();
 
@@ -127,51 +199,52 @@ namespace OMI.Workers.MSSCMP
             string fileName = ReadStringAt(reader, filenameRelativeOffset + offset);
             
 
-            Source.Add("path", pathName);
-            Source.Add("file", fileName);
-            Source.Add("0x8", reader.ReadInt32());
-            Source.Add("PlayAction", reader.ReadInt32());
-            Source.Add("0x10", reader.ReadInt32());
-            Source.Add("sampleRate", reader.ReadInt32());
-            Source.Add("fileSize", reader.ReadInt32());
-            Source.Add("Channels", reader.ReadInt32());
-            Source.Add("0x20", reader.ReadInt32());
-            Source.Add("durationMilliseconds", reader.ReadInt32());
-            Source.Add("0x28", reader.ReadInt32());
-            Source.Add("0x2C", reader.ReadInt32());
-            Source.Add("0x30", reader.ReadInt32());
-            Source.Add("0x34", reader.ReadSingle());
-            Source.Add("0x38", reader.ReadInt32());
-
-            int DataOffset = int.Parse(((string)Source["file"]).Split('*')[2].Split('.')[0]);
+            source.pathName = pathName;
+            source.fileName = fileName;
+            source.Unknown1 = reader.ReadInt32();
+            source.PlayAction = reader.ReadInt32();
+            source.Unknown2 = reader.ReadInt32();
+            source.sampleRate = reader.ReadInt32();
+            source.fileSize = reader.ReadInt32();
+            source.Channels = reader.ReadInt32();
+            source.Unknown3 = reader.ReadInt32();
+            source.durationMilliseconds = reader.ReadInt32();
+            source.Unknown4 = reader.ReadInt32();
+            source.Unknown5 = reader.ReadInt32();
+            source.Unknown6 = reader.ReadInt32();
+            source.Unknown7 = reader.ReadSingle();
+            source.Unknown8 = reader.ReadInt32();
 
 
-            Source.Add("data", ReadBytesAt(reader, DataOffset, (int)Source["fileSize"]));
+            int DataOffset = int.Parse(((string)source.fileName).Split('*')[2].Split('.')[0]);
+
+
+            source.data = ReadBytesAt(reader, DataOffset, (int)source.fileSize);
 
 
 
             Debug.WriteLine(" │ ├─StartOffset: " + offset);
             Debug.WriteLine(" │ ├─filenameRelativeOffset: " + filenameRelativeOffset);
-            Debug.WriteLine(" │ ├─Path: " + Source["path"]);
-            Debug.WriteLine(" │ ├─Filename: " + Source["file"]);
+            Debug.WriteLine(" │ ├─Path: " + source.pathName);
+            Debug.WriteLine(" │ ├─Filename: " + source.fileName);
             Debug.WriteLine(" │ ├─SourceName: " + receivedSourceNameOffset);
-            Debug.WriteLine(" │ ├─0x8: " + Source["0x8"]);
-            Debug.WriteLine(" │ ├─PlayAction: " + Source["PlayAction"]);
-            Debug.WriteLine(" │ ├─0x10: " + Source["0x10"]);
-            Debug.WriteLine(" │ ├─sampleRate: " + Source["sampleRate"]);
-            Debug.WriteLine(" │ ├─fileSize: " + Source["fileSize"]);
-            Debug.WriteLine(" │ ├─Channels: " + Source["Channels"]);
-            Debug.WriteLine(" │ ├─0x20: " + Source["0x20"]);
-            Debug.WriteLine(" │ ├─durationMilliseconds: " + Source["durationMilliseconds"]);
-            Debug.WriteLine(" │ ├─0x28: " + Source["0x28"]);
-            Debug.WriteLine(" │ ├─0x2C: " + Source["0x2C"]);
-            Debug.WriteLine(" │ ├─0x30: " + Source["0x30"]);
-            Debug.WriteLine(" │ ├─0x34: " + Source["0x34"]);
-            Debug.WriteLine(" │ ├─0x38: " + Source["0x38"]);
+            Debug.WriteLine(" │ ├─0x8: " + source.Unknown1);
+            Debug.WriteLine(" │ ├─PlayAction: " + source.PlayAction);
+            Debug.WriteLine(" │ ├─0x10: " + source.Unknown2);
+            Debug.WriteLine(" │ ├─sampleRate: " + source.sampleRate);
+            Debug.WriteLine(" │ ├─fileSize: " + source.fileSize);
+            Debug.WriteLine(" │ ├─Channels: " + source.Channels);
+            Debug.WriteLine(" │ ├─0x20: " + source.Unknown3);
+            Debug.WriteLine(" │ ├─durationMilliseconds: " + source.durationMilliseconds);
+            Debug.WriteLine(" │ ├─0x28: " + source.Unknown4);
+            Debug.WriteLine(" │ ├─0x2C: " + source.Unknown5);
+            Debug.WriteLine(" │ ├─0x30: " + source.Unknown6);
+            Debug.WriteLine(" │ ├─0x34: " + source.Unknown7);
+            Debug.WriteLine(" │ ├─0x38: " + source.Unknown8);
 
             reader.BaseStream.Position = origin;
 
-            return Source;
+            return source;
         }
 
         // TODO: check encoding for 'IsSingleByte'
