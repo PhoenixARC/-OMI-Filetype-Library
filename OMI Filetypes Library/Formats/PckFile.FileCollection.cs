@@ -107,7 +107,7 @@ namespace OMI.Formats.Pck
         {
             for (int i = 0; i < _files.Count; i++)
             {
-                object key2 = ((DictionaryEntry)_files[i]).Key;
+                object key2 = _files[i];
                 if (key2.Equals(key))
                 {
                     return i;
