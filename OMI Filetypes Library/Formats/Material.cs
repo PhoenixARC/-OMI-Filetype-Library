@@ -76,15 +76,20 @@ namespace OMI.Formats.Material
 
             public Material(string name, string type)
             {
-                if (!SupportedEntities.Contains(name) || !ValidMaterialTypes.Contains(type))
-                {
-                    throw new InvalidDataException(!SupportedEntities.Contains(name) ? name : type);
-                }
                 _name = name;
                 _type = type;
             }
         }
 
         public int Version;
+        public bool hasInvalidEntries()
+        {
+            foreach(var mat in this)
+            {
+                if (!SupportedEntities.Contains(mat.Name) || !ValidMaterialTypes.Contains(mat.Type)) return true;
+            }
+
+            return false;
+        }
     }
 }
