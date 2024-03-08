@@ -45,8 +45,6 @@ namespace OMI.Formats.Pck
                         LUT.Add(pair.Key);
                 });
             }
-            if (HasVerionString)
-                LUT.Insert(0, XMLVersionString);
             return LUT;
         }
 

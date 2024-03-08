@@ -87,8 +87,8 @@ namespace OMI.Workers.Pck
             }
             if (hasVerStr = propertyLookUp.Contains(PckFile.XMLVersionString))
             {
-                //for some reason, using Debug instead of Console does not read the bytes?
-                Console.WriteLine($"XML Version num: {reader.ReadInt32()}"); // xml version num ??
+                int __xmlVersion = reader.ReadInt32();
+                Console.WriteLine($"XML Version num: {__xmlVersion}");
             }
             return propertyLookUp;
         }

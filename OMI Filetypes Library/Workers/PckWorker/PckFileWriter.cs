@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OMI.Formats.Pck;
@@ -33,14 +34,18 @@ namespace OMI.Workers.Pck
             {
                 writer.Write(_pckFile.type);
 
-                writer.Write(_propertyList.Count);
+                writer.Write(_propertyList.Count + Convert.ToInt32(_pckFile.HasVerionString));
                 foreach (var entry in _propertyList)
                 {
                     writer.Write(_propertyList.IndexOf(entry));
                     WriteString(writer, entry);
                 };
                 if (_pckFile.HasVerionString)
+                {
+                    writer.Write(_propertyList.Count);
+                    WriteString(writer, PckFile.XMLVersionString);
                     writer.Write(1);
+                }
 
                 writer.Write(_pckFile.FileCount);
                 var files = _pckFile.GetFiles();
