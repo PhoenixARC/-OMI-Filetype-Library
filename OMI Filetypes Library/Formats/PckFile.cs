@@ -120,6 +120,8 @@ namespace OMI.Formats.Pck
 
         private void OnPckFileNameChanging(PckFileData value, string newFilename)
         {
+            if (value.Filename.Equals(newFilename))
+                return;
             Files[newFilename, value.Filetype] = value;
             if (Files.Contains(value.Filename, value.Filetype))
             {
@@ -129,6 +131,8 @@ namespace OMI.Formats.Pck
 
         private void OnPckFileTypeChanging(PckFileData value, PckFileType newFiletype)
         {
+            if (value.Filetype == newFiletype)
+                return;
             Files[value.Filename, newFiletype] = value;
             if (Files.Contains(value.Filename, value.Filetype))
             {
