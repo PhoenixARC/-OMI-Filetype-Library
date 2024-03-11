@@ -7,7 +7,7 @@ using OMI.Workers.GameRule;
 namespace OMI.Formats.GameRule
 {
     public class GameRuleFile
-    {   
+    {
         public static readonly string[] ValidGameRules = new string[]
             {
                 "MapOptions",
@@ -92,6 +92,8 @@ namespace OMI.Formats.GameRule
 
         public readonly GameRuleFileHeader Header = null;
 
+        public readonly List<FileEntry> Files = new List<FileEntry>();
+
         public enum CompressionLevel : byte
         {
             None             = 0,
@@ -122,17 +124,34 @@ namespace OMI.Formats.GameRule
         /// Initializes a new <see cref="GameRuleFile"/> with the compression level set to <see cref="CompressionLevel.None"/>.
         /// </summary>
         public GameRuleFile() : this(new GameRuleFileHeader(0xffffffff, CompressionLevel.None, null))
-        {}
+        { }
 
         public GameRuleFile(GameRuleFileHeader header)
             : this(header, CompressionType.Zlib)
-        {}
+        { }
 
         public GameRuleFile(GameRuleFileHeader header, CompressionType compressionType)
         {
             Root = new GameRule("__ROOT__", null);
             Header = header;
             Compression = compressionType;
+        }
+
+        public class FileEntry
+        {
+            public readonly string Name;
+            public readonly byte[] Data;
+
+            public FileEntry(string name, byte[] data)
+            {
+                Name = name;
+                Data = data;
+            }
+        }
+
+        public void AddFile(string name, byte[] data)
+        {
+            Files.Add(new FileEntry(name, data));
         }
 
         public class GameRule

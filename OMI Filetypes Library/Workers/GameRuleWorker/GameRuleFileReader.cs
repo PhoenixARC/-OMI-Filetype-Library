@@ -78,8 +78,7 @@ namespace OMI.Workers.GameRule
             }
 
             ReadStringLookUpTable(reader);
-            string RootName = GetString(reader);
-            Debug.WriteLine($"Root Name = {RootName}", category: nameof(GameRuleFileReader) +"."+nameof(ReadBody));
+            ReadFileEntries(reader);
             ReadGameRuleHierarchy(reader, file.Root);
         }
 
@@ -101,7 +100,7 @@ namespace OMI.Workers.GameRule
                 {
                     var rlebufffer = new byte[(int)decompressedStream.Length];
                     decompressedStream.Read(rlebufffer, 0, (int)decompressedStream.Length);
-                    byte[] decodedData = RLE<byte>.Decode(rlebufffer).ToArray();
+                    byte[] decodedData = RLE.Decode(rlebufffer).ToArray();
                     var stream = new MemoryStream(decodedData);
                     decpompressedReader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, Endianness.BigEndian);
                 }
@@ -137,6 +136,18 @@ namespace OMI.Workers.GameRule
             {
                 string s = ReadString(reader);
                 StringLookUpTable.Add(s);
+            }
+        }
+
+        private void ReadFileEntries(EndiannessAwareBinaryReader reader)
+        {
+            int count = reader.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                string filename = ReadString(reader);
+                int size = reader.ReadInt32();
+                byte[] data = reader.ReadBytes(size);
+                _file.AddFile(filename, data);
             }
         }
 

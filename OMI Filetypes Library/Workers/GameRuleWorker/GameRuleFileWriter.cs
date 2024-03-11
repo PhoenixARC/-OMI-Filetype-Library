@@ -104,7 +104,7 @@ namespace OMI.Workers.GameRule
             return outputStream.ToArray();
         }
 
-        private byte[] CompressRLE(byte[] data) => RLE<byte>.Encode(data).ToArray();
+        private byte[] CompressRLE(byte[] data) => RLE.Encode(data).ToArray();
 
         private void MakeAndWriteCrc(EndiannessAwareBinaryWriter writer, byte[] data)
         {
