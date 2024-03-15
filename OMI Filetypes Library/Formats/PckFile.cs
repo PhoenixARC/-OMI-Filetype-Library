@@ -106,17 +106,14 @@ namespace OMI.Formats.Pck
         /// <returns>True if succeeded, otherwise false</returns>
         public bool TryGetFile(string filename, PckFileType filetype, out PckFileData file)
         {
-            try
+            if (HasFile(filename, filetype))
             {
                 file = GetFile(filename, filetype);
-                return file is PckFileData;
+                return true;
             }
-            catch (KeyNotFoundException)
-            {
                 file = null;
                 return false;
             }
-        }
 
         private void OnPckFileNameChanging(PckFileData value, string newFilename)
         {
