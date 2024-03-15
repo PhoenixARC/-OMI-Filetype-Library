@@ -35,10 +35,10 @@ namespace OMI.Workers.Language
                 if (_type == 2)
                 {
                     // dont use uids
-                    writer.Write(false);
+                    writer.Write(true);
                     writer.Write(_locfile.LocKeys.Count);
                     foreach (var key in _locfile.LocKeys.Keys)
-                        WriteString(writer, key);
+                        WriteHexKey(writer, key);
                 }
                 WriteLanguages(writer);
                 WriteLanguageEntries(writer);
@@ -66,6 +66,8 @@ namespace OMI.Workers.Language
                     size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc key string
                 }
 
+                long pos = writer.BaseStream.Position;
+
                 writer.Write(size);
             });
         }
@@ -76,7 +78,7 @@ namespace OMI.Workers.Language
             {
                 writer.Write(_type);
                 if (_type > 0)
-                    writer.Write(false);
+                    writer.Write(true);
 
                 WriteString(writer, language);
                 writer.Write(_locfile.LocKeys.Keys.Count);
@@ -94,5 +96,32 @@ namespace OMI.Workers.Language
             writer.Write(length);
             writer.WriteString(s);
         }
+        private void WriteHexKey(EndiannessAwareBinaryWriter writer, string s)
+        {
+            // Ensure the length of the hex string is even
+            if (s.Length % 2 != 0)
+            {
+                throw new ArgumentException("Hex string length must be even.");
+            }
+
+            // Create a byte array to store the result
+            byte[] byteArray = new byte[s.Length / 2];
+
+            // Convert each pair of characters into bytes
+            for (int i = 0; i < s.Length; i += 2)
+            {
+                string hexByte = s.Substring(i, 2);
+                byteArray[i / 2] = Convert.ToByte(hexByte, 16);
+            }
+
+            foreach (byte byt in byteArray) 
+            {
+                writer.Write(byt);
+            }
+
+
+        }
+
+
     }
 }
