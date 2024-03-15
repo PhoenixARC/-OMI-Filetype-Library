@@ -6,66 +6,81 @@ namespace OMI.Formats.Pck
 {
     using PropertyValueType = KeyValuePair<string, string>;
 
-    public class PckFileProperties : List<PropertyValueType>
+    internal class PckFileProperties : List<PropertyValueType>
     {
-        public void Add<T>(string key, T value)
+        internal void Add<T>(string key, T value)
         {
             Add(new PropertyValueType(key, value.ToString()));
         }
 
-        public void Add<T>((string key, T value) property)
+        internal void Add<T>((string key, T value) property)
         {
             Add(new PropertyValueType(property.key, property.value.ToString()));
         }
 
-        public void Add(string key, string value)
+        internal void Add(string key, string value)
         {
             Add(new PropertyValueType(key, value));
         }
 
-        public bool Contains(string property)
+        internal bool TryGetProperty(string property, out string value)
         {
-            return HasProperty(property);
+            if (Contains(property))
+            {
+                value = GetPropertyValue(property);
+                return true;
+            }
+            value = null;
+            return false;
         }
 
-        public bool HasProperty(string property)
+        internal bool Remove(string property)
         {
-            return GetProperty(property).Key is not null;
+            if (!Contains(property))
+                return false;
+            int index = FindIndex(p => p.Key == property);
+            RemoveAt(index);
+            return true;
         }
 
-        public PropertyValueType GetProperty(string property)
+        internal bool Contains(string property)
+        {
+            return Exists(p => p.Key == property);
+        }
+
+        internal PropertyValueType GetProperty(string property)
         {
             return this.FirstOrDefault(p => p.Key.Equals(property))!;
         }
 
-        public T GetPropertyValue<T>(string property, Func<string, T> func)
+        internal T GetPropertyValue<T>(string property, Func<string, T> func)
         {
             return func(GetPropertyValue(property));
         }
 
-        public string GetPropertyValue(string property)
+        internal string GetPropertyValue(string property)
         {
             return GetProperty(property).Value;
         }
 
-        public PropertyValueType[] GetProperties(string property)
+        internal PropertyValueType[] GetProperties(string property)
         {
             return FindAll(p => p.Key == property).ToArray();
         }
 
-        public bool HasMoreThanOneOf(string property)
+        internal bool HasMoreThanOneOf(string property)
         {
             return GetProperties(property).Length > 1;
         }
 
-        public void Merge(PckFileProperties other)
+        internal void Merge(PckFileProperties other)
         {
             AddRange(other);
         }
 
-        public void SetProperty(string property, string value)
+        internal void SetProperty(string property, string value)
         {
-            if (HasProperty(property))
+            if (Contains(property))
             {
                 this[IndexOf(GetProperty(property))] = new PropertyValueType(property, value);
                 return;

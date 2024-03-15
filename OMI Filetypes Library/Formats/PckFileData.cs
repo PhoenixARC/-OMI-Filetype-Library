@@ -33,7 +33,7 @@ namespace OMI.Formats.Pck
 
         public byte[] Data => _data;
         public int Size => _data?.Length ?? 0;
-        public PckFileProperties Properties { get; } = new PckFileProperties();
+        internal PckFileProperties Properties { get; } = new PckFileProperties();
 
         private string filename;
         private PckFileType filetype;
@@ -88,6 +88,40 @@ namespace OMI.Formats.Pck
                 Size.Equals(other.Size) &&
                 thisHash.Equals(otherHash);
         }
+
+        public int PropertyCount => Properties.Count;
+
+        public void AddProperty(KeyValuePair<string, string> property) => Properties.Add(property);
+        
+        public void AddProperty(string name, string value) => Properties.Add(name, value);
+
+        public void AddProperty<T>(string name, T value) => Properties.Add(name, value);
+
+        public void RemoveProperty(string name) => Properties.Remove(name);
+        
+        public bool RemoveProperty(KeyValuePair<string, string> property) => Properties.Remove(property);
+        
+        public void RemoveProperties(string name) => Properties.RemoveAll(p => p.Key == name);
+
+        public void ClearProperties() => Properties.Clear();
+
+        public bool HasProperty(string property) => Properties.Contains(property);
+
+        public int GetPropertyIndex(KeyValuePair<string, string> property) => Properties.IndexOf(property);
+
+        public string GetProperty(string name) => Properties.GetPropertyValue(name);
+        
+        public T GetProperty<T>(string name, Func<string, T> func) => Properties.GetPropertyValue(name, func);
+
+        public bool TryGetProperty(string name, out string value) => Properties.TryGetProperty(name, out value);
+
+        public KeyValuePair<string, string>[] GetMultipleProperties(string property) => Properties.GetProperties(property);
+
+        public IReadOnlyList<KeyValuePair<string, string>> GetProperties() => Properties.AsReadOnly();
+
+        public void SetProperty(int index, KeyValuePair<string, string> property) => Properties[index] = property;
+        
+        public void SetProperty(string name, string value) => Properties.SetProperty(name, value);
 
         public override bool Equals(object obj)
         {
