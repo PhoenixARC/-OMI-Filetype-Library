@@ -9,13 +9,13 @@ namespace OMI.Workers.Language
     public class LOCFileWriter : IDataFormatWriter
     {
         private LOCFile _locfile;
-        private int _type;
+        private int _version;
 
-        public LOCFileWriter(LOCFile file, int type)
+        public LOCFileWriter(LOCFile file, int version)
         {
             _ = file ?? throw new ArgumentNullException(nameof(file));
             _locfile = file;
-            _type = type;
+            _version = version;
         }
 
         public void WriteToFile(string filename)
@@ -30,15 +30,19 @@ namespace OMI.Workers.Language
         {
             using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.UTF8, leaveOpen: true, Endianness.BigEndian))
             {
-                writer.Write(_type);
+                writer.Write(_version);
                 writer.Write(_locfile.Languages.Count);
-                if (_type == 2)
+                if (_version == 2)
                 {
-                    // dont use uids
-                    writer.Write(true);
+                    writer.Write(_locfile.hasUids);
                     writer.Write(_locfile.LocKeys.Count);
                     foreach (var key in _locfile.LocKeys.Keys)
-                        WriteHexKey(writer, key);
+                    {
+                        if (_locfile.hasUids)
+                            WriteUid(writer, key);
+                        else
+                            WriteString(writer, key);
+                    }
                 }
                 WriteLanguages(writer);
                 WriteLanguageEntries(writer);
@@ -47,7 +51,7 @@ namespace OMI.Workers.Language
 
         private void WriteLanguages(EndiannessAwareBinaryWriter writer)
         {
-            _locfile.Languages.ForEach(language =>
+            foreach (var language in _locfile.Languages)
             {
                 WriteString(writer, language);
                 
@@ -61,33 +65,31 @@ namespace OMI.Workers.Language
 
                 foreach (var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (_type == 0)
+                    if (_version == 0)
                         size += sizeof(short) + writer.EncodingScheme.GetByteCount(locKey); // loc key string
                     size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc key string
                 }
-
-                long pos = writer.BaseStream.Position;
-
                 writer.Write(size);
-            });
+            };
         }
 
         private void WriteLanguageEntries(EndiannessAwareBinaryWriter writer)
         {
-            _locfile.Languages.ForEach(language =>
+            foreach(var language in _locfile.Languages)
             {
-                writer.Write(_type);
-                if (_type > 0)
+                writer.Write(_version);
+                if (_version > 0)
                     writer.Write(true);
 
                 WriteString(writer, language);
                 writer.Write(_locfile.LocKeys.Keys.Count);
                 foreach(var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (_type == 0) WriteString(writer, locKey);
+                    if (_version == 0)
+                        WriteString(writer, locKey);
                     WriteString(writer, _locfile.LocKeys[locKey][language]);
                 }
-            });
+            };
         }
 
         private void WriteString(EndiannessAwareBinaryWriter writer, string s)
@@ -96,32 +98,11 @@ namespace OMI.Workers.Language
             writer.Write(length);
             writer.WriteString(s);
         }
-        private void WriteHexKey(EndiannessAwareBinaryWriter writer, string s)
+
+        private void WriteUid(EndiannessAwareBinaryWriter writer, string s)
         {
-            // Ensure the length of the hex string is even
-            if (s.Length % 2 != 0)
-            {
-                throw new ArgumentException("Hex string length must be even.");
-            }
-
-            // Create a byte array to store the result
-            byte[] byteArray = new byte[s.Length / 2];
-
-            // Convert each pair of characters into bytes
-            for (int i = 0; i < s.Length; i += 2)
-            {
-                string hexByte = s.Substring(i, 2);
-                byteArray[i / 2] = Convert.ToByte(hexByte, 16);
-            }
-
-            foreach (byte byt in byteArray) 
-            {
-                writer.Write(byt);
-            }
-
-
+            uint uid = uint.Parse(s, System.Globalization.NumberStyles.HexNumber, null);   
+            writer.Write(uid);
         }
-
-
     }
 }

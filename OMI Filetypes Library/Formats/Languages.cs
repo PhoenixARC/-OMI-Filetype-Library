@@ -105,18 +105,11 @@ namespace OMI.Formats.Languages
 
         private Dictionary<string, Dictionary<string, string>> _lockeys = new Dictionary<string, Dictionary<string, string>>();
         private List<string> _languages = new List<string>(ValidLanguages.Length);
+        
+        internal bool hasUids = false;
 
         public Dictionary<string, Dictionary<string, string>> LocKeys => _lockeys;
         public List<string> Languages => _languages;
-
-        public void InitializeDefault(string packName)
-            => Initialize("en-EN", ("IDS_DISPLAY_NAME", packName));
-        public void Initialize(string language, params (string, string)[] locKeyValuePairs)
-        {
-            AddLanguage(language);
-            foreach (var locKeyValue in locKeyValuePairs)
-                AddLocKey(locKeyValue.Item1, locKeyValue.Item2);
-        }
 
         private Dictionary<string, string> GetTranslation(string locKey)
         {
