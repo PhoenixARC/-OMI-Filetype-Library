@@ -62,9 +62,9 @@ namespace OMI.Workers.GameRule
                 _buffer = CompressRLE(_buffer);
             if (_grfFile.Header.CompressionLevel >= GameRuleFile.CompressionLevel.Compressed)
             {
-                var compressed_buffer = Compress(_buffer);
+                _buffer = Compress(_buffer);
                 destination.Write(_original_length);
-                destination.Write(compressed_buffer.Length);
+                destination.Write(_buffer.Length);
             }
             if (_grfFile.Header.CompressionLevel >= GameRuleFile.CompressionLevel.CompressedRleCrc)
                 MakeAndWriteCrc(destination, _buffer);
