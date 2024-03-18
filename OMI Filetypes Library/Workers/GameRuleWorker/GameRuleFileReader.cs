@@ -66,7 +66,7 @@ namespace OMI.Workers.GameRule
                 //compressionLevel = (GameRuleFile.CompressionLevel)byte4;
                 throw new NotSupportedException("World grf's are not currently not supported.");
             }
-            return new GameRuleFileHeader(crc, compressionLevel, unknownDataBuffer);
+            return new GameRuleFileHeader(crc, compressionLevel, _compressionType, unknownDataBuffer);
         }
 
         private void ReadBody(GameRuleFile file, EndiannessAwareBinaryReader reader)

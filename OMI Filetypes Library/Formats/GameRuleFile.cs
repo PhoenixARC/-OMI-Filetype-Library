@@ -102,10 +102,9 @@ namespace OMI.Formats.GameRule
             CompressedRleCrc = 3,
         }
 
-        public CompressionType Compression { get; set; }
-
         public enum CompressionType
         {
+            Unknown = -1,
             /// <summary>
             /// Zlib compression is used on PS Vita, Wii U and Nintendo Switch.
             /// </summary>
@@ -123,18 +122,13 @@ namespace OMI.Formats.GameRule
         /// <summary>
         /// Initializes a new <see cref="GameRuleFile"/> with the compression level set to <see cref="CompressionLevel.None"/>.
         /// </summary>
-        public GameRuleFile() : this(new GameRuleFileHeader(0xffffffff, CompressionLevel.None, null))
+        public GameRuleFile() : this(new GameRuleFileHeader(0xffffffff, CompressionLevel.None))
         { }
 
         public GameRuleFile(GameRuleFileHeader header)
-            : this(header, CompressionType.Zlib)
-        { }
-
-        public GameRuleFile(GameRuleFileHeader header, CompressionType compressionType)
         {
             Root = new GameRule("__ROOT__", null);
             Header = header;
-            Compression = compressionType;
         }
 
         public class FileEntry
