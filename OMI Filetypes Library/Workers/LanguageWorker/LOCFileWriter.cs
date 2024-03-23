@@ -55,19 +55,20 @@ namespace OMI.Workers.Language
             {
                 WriteString(writer, language);
                 
-                //Calculate the size of the language entry
+                // Calculate the size of the language entry
 
                 int size = 0;
-                size += sizeof(int); // null int
-                size += sizeof(byte); // null byte
-                size += sizeof(short) + writer.EncodingScheme.GetByteCount(language);
+                size += sizeof(int); // version
+                if (_version > 0)
+                    size += sizeof(byte); // bool
+                size += sizeof(short) + writer.EncodingScheme.GetByteCount(language); // language name
                 size += sizeof(int); // key count
 
                 foreach (var locKey in _locfile.LocKeys.Keys)
                 {
                     if (_version == 0)
                         size += sizeof(short) + writer.EncodingScheme.GetByteCount(locKey); // loc key string
-                    size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc key string
+                    size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc value string
                 }
                 writer.Write(size);
             };
@@ -79,7 +80,7 @@ namespace OMI.Workers.Language
             {
                 writer.Write(_version);
                 if (_version > 0)
-                    writer.Write(true);
+                    writer.Write(_locfile.hasUids);
 
                 WriteString(writer, language);
                 writer.Write(_locfile.LocKeys.Keys.Count);
