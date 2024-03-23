@@ -83,6 +83,16 @@ namespace OMI.Formats.Pck
             return _files.Contains(GetStorageKey(filename, filetype));
         }
 
+        public bool Contains(PckFileType filetype)
+        {
+            foreach (var file in _files.Values.Cast<PckFileData>())
+            {
+                if (file.Filetype == filetype)
+                    return true;
+            }
+            return false;
+        }
+
         private object GetStorageKey(string key, PckFileType fileType)
         {
             return $"{key}_{fileType}";

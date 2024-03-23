@@ -159,6 +159,11 @@ namespace OMI.Formats.Pck
             return Files.Contains(filename, filetype);
         }
 
+        public bool Contains(PckFileType filetype)
+        {
+            return Files.Contains(filetype);
+        }
+
         public void AddFile(PckFileData file)
         {
             file.Move();
