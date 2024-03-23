@@ -16,13 +16,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
 **/
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace OMI
 {
-    public class EndiannessAwareBinaryWriter : BinaryWriter
+    public sealed class EndiannessAwareBinaryWriter : BinaryWriter
     {
         private readonly Endianness _endianness = Endianness.LittleEndian;
         private readonly Encoding _encoding = Encoding.UTF8;
