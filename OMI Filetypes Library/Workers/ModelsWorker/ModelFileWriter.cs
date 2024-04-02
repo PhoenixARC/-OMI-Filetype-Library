@@ -14,12 +14,12 @@ namespace OMI.Workers.Model
 {
     public class ModelFileWriter : IDataFormatWriter
     {
-        //! TODO: accept version in the constructor
-        private const int fileVersion = 1;
+        private int fileVersion;
         private readonly ModelContainer container;
 
-        public ModelFileWriter(ModelContainer container)
+        public ModelFileWriter(ModelContainer container, int version)
         {
+            fileVersion = version;
             this.container = container;
         }
 
@@ -47,15 +47,24 @@ namespace OMI.Workers.Model
                     foreach (ModelPart part in model.Parts.Values)
                     {
                         WriteString(writer, part.Name);
+                        if (fileVersion > 1)
+                        {
+                            // in case part doesn't have parent
+                            WriteString(writer, part.ParentName ?? string.Empty);
+                        }
                         writer.Write(part.TranslationX);
                         writer.Write(part.TranslationY);
                         writer.Write(part.TranslationZ);
                         writer.Write(part.UnknownFloat);
                         writer.Write(part.TextureOffsetX);
                         writer.Write(part.TextureOffsetY);
-                        writer.Write(part.RotationX);
-                        writer.Write(part.RotationY);
-                        writer.Write(part.RotationZ);
+
+                        if (fileVersion > 0)
+                        {
+                            writer.Write(part.RotationX);
+                            writer.Write(part.RotationY);
+                            writer.Write(part.RotationZ);
+                        }
                         writer.Write(part.Boxes.Count);
                         foreach (var box in part.Boxes)
                         {
