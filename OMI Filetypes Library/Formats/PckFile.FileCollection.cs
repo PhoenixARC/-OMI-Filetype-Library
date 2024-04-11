@@ -53,7 +53,7 @@ namespace OMI.Formats.Pck
                 {
                     Debug.WriteLine($"Duplicate file: '{value.Filename}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
                     Debug.WriteLine($"Merging '{value.Filename}' Properties", category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    var first = this[value.Filename, value.Filetype];
+                    PckFileData first = GetFile(value.Filename, value.Filetype);
                     first.Properties.Merge(value.Properties);
                     return;
                 }
@@ -66,6 +66,11 @@ namespace OMI.Formats.Pck
                 return;
             }
             _files.Add(key, value);
+        }
+
+        internal PckFileData GetFile(string filename, PckFileType filetype)
+        {
+            return _files[GetStorageKey(filename, filetype)] as PckFileData;
         }
 
         public void Clear()
@@ -181,7 +186,7 @@ namespace OMI.Formats.Pck
         {
             if (Contains(key, fileType))
             {
-                value = this[key, fileType];
+                value = GetFile(key, fileType);
                 return true;
             }
             value = null;

@@ -94,7 +94,7 @@ namespace OMI.Formats.Pck
         /// <exception cref="KeyNotFoundException"></exception>
         public PckFileData GetFile(string filename, PckFileType filetype)
         {
-            return Files[filename, filetype];
+            return Files.GetFile(filename, filetype);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace OMI.Formats.Pck
         {
             if (Files.Contains(filename, filetype))
             {
-                return Files[filename, filetype];
+                return Files.GetFile(filename, filetype);
             }
             return new PckFileData(filename, filetype, OnPckFileNameChanging, OnPckFileTypeChanging, OnMoveFile);
         }
