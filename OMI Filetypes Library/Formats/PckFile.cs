@@ -120,10 +120,7 @@ namespace OMI.Formats.Pck
             if (value.Filename.Equals(newFilename))
                 return;
             Files[newFilename, value.Filetype] = value;
-            if (Files.Contains(value.Filename, value.Filetype))
-            {
-                Files.Remove(value);
-            }
+            Files.RemoveKeyFromCollection(value);
         }
 
         private void OnPckFileTypeChanging(PckFileData value, PckFileType newFiletype)
@@ -131,10 +128,7 @@ namespace OMI.Formats.Pck
             if (value.Filetype == newFiletype)
                 return;
             Files[value.Filename, newFiletype] = value;
-            if (Files.Contains(value.Filename, value.Filetype))
-            {
-                Files.Remove(value);
-            }
+            Files.RemoveKeyFromCollection(value);
         }
 
         private void OnMoveFile(PckFileData value)

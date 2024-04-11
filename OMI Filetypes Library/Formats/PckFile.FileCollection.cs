@@ -147,14 +147,20 @@ namespace OMI.Formats.Pck
             return false;
         }
 
+        internal bool RemoveKeyFromCollection(PckFileData item)
+        {
+            return item is not null && InternalRemoveKeyFromCollection(item.Filename, item.Filetype);
+        }
+
+        internal bool InternalRemoveKeyFromCollection(string filename, PckFileType filetype)
+        {
+            return Remove(filename,filetype);
+        }
+
         public bool Remove(PckFileData item)
         {
-            if (item is not null)
-            {
-                item.SetEvents(null, null, null);
-                return Remove(item.Filename, item.Filetype);
-            }
-            return false;
+            item?.SetEvents(null, null, null);
+            return RemoveKeyFromCollection(item);
         }
 
         public void RemoveDuplicates()
