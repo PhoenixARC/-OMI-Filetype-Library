@@ -27,13 +27,76 @@ namespace OMI.Formats.Pck
             }
         }
 
+        public byte[] Data => _data;
+        public int Size => _data?.Length ?? 0;
+
+        public int PropertyCount => Properties.Count;
+
+        public PckFileData(string filename, PckFileType filetype)
+        {
+            Filetype = filetype;
+            Filename = filename;
+        }
+
+        public void AddProperty(KeyValuePair<string, string> property) => Properties.Add(property);
+
+        public void AddProperty(string name, string value) => Properties.Add(name, value);
+
+        public void AddProperty<T>(string name, T value) => Properties.Add(name, value);
+
+        public void RemoveProperty(string name) => Properties.Remove(name);
+
+        public bool RemoveProperty(KeyValuePair<string, string> property) => Properties.Remove(property);
+
+        public void RemoveProperties(string name) => Properties.RemoveAll(p => p.Key == name);
+
+        public void ClearProperties() => Properties.Clear();
+
+        public bool HasProperty(string property) => Properties.Contains(property);
+
+        public int GetPropertyIndex(KeyValuePair<string, string> property) => Properties.IndexOf(property);
+
+        public string GetProperty(string name) => Properties.GetPropertyValue(name);
+
+        public T GetProperty<T>(string name, Func<string, T> func) => Properties.GetPropertyValue(name, func);
+
+        public bool TryGetProperty(string name, out string value) => Properties.TryGetProperty(name, out value);
+
+        public KeyValuePair<string, string>[] GetMultipleProperties(string property) => Properties.GetProperties(property);
+
+        public IReadOnlyList<KeyValuePair<string, string>> GetProperties() => Properties.AsReadOnly();
+
+        public void SetProperty(int index, KeyValuePair<string, string> property) => Properties[index] = property;
+
+        public void SetProperty(string name, string value) => Properties.SetProperty(name, value);
+
+        public override bool Equals(object obj)
+        {
+            return obj is PckFileData other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 953938382;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Filename);
+            hashCode = hashCode * -1521134295 + Filetype.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
+            hashCode = hashCode * -1521134295 + Size.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<PckFileProperties>.Default.GetHashCode(Properties);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(filename);
+            hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(_data);
+            return hashCode;
+        }
+
+        public void SetData(byte[] data)
+        {
+            _data = data;
+        }
+
         internal delegate void OnFilenameChangingDelegate(PckFileData _this, string newFilename);
         internal delegate void OnFiletypeChangingDelegate(PckFileData _this, PckFileType newFiletype);
         internal delegate void OnMoveDelegate(PckFileData _this);
-
-        public byte[] Data => _data;
-        public int Size => _data?.Length ?? 0;
-        internal PckFileProperties Properties { get; } = new PckFileProperties();
+        internal PckFileProperties Properties = new PckFileProperties();
 
         private string filename;
         private PckFileType filetype;
@@ -48,12 +111,6 @@ namespace OMI.Formats.Pck
             : this(filename, filetype)
         {
             SetEvents(onFilenameChanging, onFiletypeChanging, onMove);
-        }
-
-        public PckFileData(string filename, PckFileType filetype)
-        {
-            Filetype = filetype;
-            Filename = filename;
         }
 
         internal PckFileData(string filename, PckFileType filetype, int dataSize) : this(filename, filetype)
@@ -73,11 +130,6 @@ namespace OMI.Formats.Pck
             OnMove = onMove;
         }
 
-        public void SetData(byte[] data)
-        {
-            _data = data;
-        }
-
         public bool Equals(PckFileData other)
         {
             var hasher = MD5.Create();
@@ -87,58 +139,6 @@ namespace OMI.Formats.Pck
                 Filetype.Equals(other.Filetype) &&
                 Size.Equals(other.Size) &&
                 thisHash.Equals(otherHash);
-        }
-
-        public int PropertyCount => Properties.Count;
-
-        public void AddProperty(KeyValuePair<string, string> property) => Properties.Add(property);
-        
-        public void AddProperty(string name, string value) => Properties.Add(name, value);
-
-        public void AddProperty<T>(string name, T value) => Properties.Add(name, value);
-
-        public void RemoveProperty(string name) => Properties.Remove(name);
-        
-        public bool RemoveProperty(KeyValuePair<string, string> property) => Properties.Remove(property);
-        
-        public void RemoveProperties(string name) => Properties.RemoveAll(p => p.Key == name);
-
-        public void ClearProperties() => Properties.Clear();
-
-        public bool HasProperty(string property) => Properties.Contains(property);
-
-        public int GetPropertyIndex(KeyValuePair<string, string> property) => Properties.IndexOf(property);
-
-        public string GetProperty(string name) => Properties.GetPropertyValue(name);
-        
-        public T GetProperty<T>(string name, Func<string, T> func) => Properties.GetPropertyValue(name, func);
-
-        public bool TryGetProperty(string name, out string value) => Properties.TryGetProperty(name, out value);
-
-        public KeyValuePair<string, string>[] GetMultipleProperties(string property) => Properties.GetProperties(property);
-
-        public IReadOnlyList<KeyValuePair<string, string>> GetProperties() => Properties.AsReadOnly();
-
-        public void SetProperty(int index, KeyValuePair<string, string> property) => Properties[index] = property;
-        
-        public void SetProperty(string name, string value) => Properties.SetProperty(name, value);
-
-        public override bool Equals(object obj)
-        {
-            return obj is PckFileData other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = 953938382;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Filename);
-            hashCode = hashCode * -1521134295 + Filetype.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
-            hashCode = hashCode * -1521134295 + Size.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<PckFileProperties>.Default.GetHashCode(Properties);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(filename);
-            hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(_data);
-            return hashCode;
         }
 
         internal void Move()
