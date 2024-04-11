@@ -103,7 +103,7 @@ namespace OMI.Formats.Pck
             return $"{key}_{fileType}";
         }
 
-        private object GetStoreKey(PckFileData item)
+        private object GetStorageKey(PckFileData item)
         {
             return GetStorageKey(item.Filename, item.Filetype);
         }
@@ -134,7 +134,7 @@ namespace OMI.Formats.Pck
         public void Insert(int index, PckFileData item)
         {
             _ = item ?? throw new ArgumentNullException(nameof(item));
-            _files.Insert(index, GetStoreKey(item), item);
+            _files.Insert(index, GetStorageKey(item), item);
         }
 
         internal bool Remove(string filename, PckFileType filetype)
