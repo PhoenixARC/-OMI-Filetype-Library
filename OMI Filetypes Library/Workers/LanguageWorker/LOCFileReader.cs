@@ -31,25 +31,30 @@ namespace OMI.Workers.Language
                 int language_count = reader.ReadInt32();
                 bool lookUpKey = loc_type == 2;
                 List<string> keys = lookUpKey ? ReadKeys(reader) : null;
+                int[] languageEntryBufferSizes = new int[language_count];
                 for (int i = 0; i < language_count; i++)
                 {
                     string language = ReadString(reader);
-                    reader.ReadInt32();
+                    languageEntryBufferSizes[i] = reader.ReadInt32();
                     locFile.Languages.Add(language);
                 }
                 for (int i = 0; i < language_count; i++)
                 {
-                    if (0 < reader.ReadInt32())
-                        stream.ReadByte();
-                    string language = ReadString(reader);
-                    if (!locFile.Languages.Contains(language))
-                        throw new KeyNotFoundException(nameof(language));
-                    int count = reader.ReadInt32();
-                    for (int j = 0; j < count; j++)
+                    Stream languageEntryStream = new MemoryStream(reader.ReadBytes(languageEntryBufferSizes[i]));
+                    using (var entryReader = new EndiannessAwareBinaryReader(languageEntryStream, Endianness.BigEndian))
                     {
-                        string key = lookUpKey ? keys[j] : ReadString(reader);
-                        string value = ReadString(reader);
-                        locFile.SetLocEntry(key, language, value);
+                        if (0 < entryReader.ReadInt32())
+                            stream.ReadByte();
+                        string language = ReadString(entryReader);
+                        if (!locFile.Languages.Contains(language))
+                            throw new KeyNotFoundException(nameof(language));
+                        int count = entryReader.ReadInt32();
+                        for (int j = 0; j < count; j++)
+                        {
+                            string key = lookUpKey ? keys[j] : ReadString(entryReader);
+                            string value = ReadString(entryReader);
+                            locFile.SetLocEntry(key, language, value);
+                        }
                     }
                 }
             }
