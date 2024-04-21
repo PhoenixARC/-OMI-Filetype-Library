@@ -52,7 +52,7 @@ namespace OMI.Workers.Pck
                 foreach (var file in files)
                 {
                     writer.Write(file.Size);
-                    writer.Write((int)file.Filetype);
+                    writer.Write((int)file.Type);
                     WriteString(writer, file.Filename);
                 }
 

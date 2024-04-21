@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 
 namespace OMI.Formats.Pck
 {
-    public class PckFileData : IEquatable<PckFileData>
+    public class PckAsset : IEquatable<PckAsset>
     {
         public string Filename
         {
@@ -16,14 +16,14 @@ namespace OMI.Formats.Pck
                 filename = newFilename;
             }
         }
-        public PckFileType Filetype
+        public PckAssetType Type
         {
-            get => filetype;
+            get => type;
             set
             {
                 var newValue = value;
-                OnFiletypeChanging?.Invoke(this, newValue);
-                filetype = newValue;
+                OnAssetTypeChanging?.Invoke(this, newValue);
+                type = newValue;
             }
         }
 
@@ -32,9 +32,9 @@ namespace OMI.Formats.Pck
 
         public int PropertyCount => Properties.Count;
 
-        public PckFileData(string filename, PckFileType filetype)
+        public PckAsset(string filename, PckAssetType type)
         {
-            Filetype = filetype;
+            Type = type;
             Filename = filename;
         }
 
@@ -72,14 +72,14 @@ namespace OMI.Formats.Pck
 
         public override bool Equals(object obj)
         {
-            return obj is PckFileData other && Equals(other);
+            return obj is PckAsset other && Equals(other);
         }
 
         public override int GetHashCode()
         {
             int hashCode = 953938382;
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Filename);
-            hashCode = hashCode * -1521134295 + Filetype.GetHashCode();
+            hashCode = hashCode * -1521134295 + Type.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
             hashCode = hashCode * -1521134295 + Size.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<PckFileProperties>.Default.GetHashCode(Properties);
@@ -93,19 +93,19 @@ namespace OMI.Formats.Pck
             _data = data;
         }
 
-        internal delegate void OnFilenameChangingDelegate(PckFileData _this, string newFilename);
-        internal delegate void OnFiletypeChangingDelegate(PckFileData _this, PckFileType newFiletype);
-        internal delegate void OnMoveDelegate(PckFileData _this);
+        internal delegate void OnFilenameChangingDelegate(PckAsset _this, string newFilename);
+        internal delegate void OnFiletypeChangingDelegate(PckAsset _this, PckAssetType newFiletype);
+        internal delegate void OnMoveDelegate(PckAsset _this);
         internal PckFileProperties Properties = new PckFileProperties();
 
         private string filename;
-        private PckFileType filetype;
+        private PckAssetType type;
         private OnFilenameChangingDelegate OnFilenameChanging;
-        private OnFiletypeChangingDelegate OnFiletypeChanging;
+        private OnFiletypeChangingDelegate OnAssetTypeChanging;
         private OnMoveDelegate OnMove;
         private byte[] _data = new byte[0];
 
-        internal PckFileData(string filename, PckFileType filetype,
+        internal PckAsset(string filename, PckAssetType filetype,
             OnFilenameChangingDelegate onFilenameChanging, OnFiletypeChangingDelegate onFiletypeChanging,
             OnMoveDelegate onMove)
             : this(filename, filetype)
@@ -113,30 +113,30 @@ namespace OMI.Formats.Pck
             SetEvents(onFilenameChanging, onFiletypeChanging, onMove);
         }
 
-        internal PckFileData(string filename, PckFileType filetype, int dataSize) : this(filename, filetype)
+        internal PckAsset(string filename, PckAssetType filetype, int dataSize) : this(filename, filetype)
         {
             _data = new byte[dataSize];
         }
 
         internal bool HasEventsSet()
         {
-            return OnFilenameChanging != null && OnFiletypeChanging != null && OnMove != null;
+            return OnFilenameChanging != null && OnAssetTypeChanging != null && OnMove != null;
         }
 
         internal void SetEvents(OnFilenameChangingDelegate onFilenameChanging, OnFiletypeChangingDelegate onFiletypeChanging, OnMoveDelegate onMove)
         {
             OnFilenameChanging = onFilenameChanging;
-            OnFiletypeChanging = onFiletypeChanging;
+            OnAssetTypeChanging = onFiletypeChanging;
             OnMove = onMove;
         }
 
-        public bool Equals(PckFileData other)
+        public bool Equals(PckAsset other)
         {
             var hasher = MD5.Create();
             var thisHash = BitConverter.ToString(hasher.ComputeHash(Data));
             var otherHash = BitConverter.ToString(hasher.ComputeHash(other.Data));
             return Filename.Equals(other.Filename) &&
-                Filetype.Equals(other.Filetype) &&
+                Type.Equals(other.Type) &&
                 Size.Equals(other.Size) &&
                 thisHash.Equals(otherHash);
         }
