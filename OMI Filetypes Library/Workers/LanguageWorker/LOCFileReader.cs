@@ -52,12 +52,7 @@ namespace OMI.Workers.Language
                     using (var entryReader = new EndiannessAwareBinaryReader(languageEntryStream, Endianness.BigEndian))
                     {
                         if (0 < entryReader.ReadInt32())
-
-                            if (lookUpKey)
-                                entryReader.ReadByte();
-                            else
-                                stream.ReadByte();
-
+                            entryReader.ReadByte();
                         string language = ReadString(entryReader);
                         if (!locFile.Languages.Contains(language))
                             throw new KeyNotFoundException(nameof(language));
