@@ -8,6 +8,7 @@ namespace OMI.Workers.Language
 {
     public class LOCFileReader : IDataFormatReader<LOCFile>, IDataFormatReader
     {
+
         public LOCFile FromFile(string filename)
         {
             if (File.Exists(filename))
@@ -30,6 +31,13 @@ namespace OMI.Workers.Language
                 int loc_type = reader.ReadInt32();
                 int language_count = reader.ReadInt32();
                 bool lookUpKey = loc_type == 2;
+
+                if (lookUpKey) 
+                {
+                    locFile.hasUids = reader.ReadBoolean();
+                    reader.BaseStream.Position -= 1;
+                }
+
                 List<string> keys = lookUpKey ? ReadKeys(reader) : null;
                 int[] languageEntryBufferSizes = new int[language_count];
                 for (int i = 0; i < language_count; i++)
@@ -44,7 +52,12 @@ namespace OMI.Workers.Language
                     using (var entryReader = new EndiannessAwareBinaryReader(languageEntryStream, Endianness.BigEndian))
                     {
                         if (0 < entryReader.ReadInt32())
-                            stream.ReadByte();
+
+                            if (lookUpKey)
+                                entryReader.ReadByte();
+                            else
+                                stream.ReadByte();
+
                         string language = ReadString(entryReader);
                         if (!locFile.Languages.Contains(language))
                             throw new KeyNotFoundException(nameof(language));
