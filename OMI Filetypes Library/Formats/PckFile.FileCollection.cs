@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace OMI.Formats.Pck
 {
-    public class FileCollection : IList<PckFileData>
+    public class FileCollection : IList<PckAsset>
     {
         private OrderedDictionary _files = new OrderedDictionary();
         private ArrayList duplicates = new ArrayList();
@@ -16,27 +16,27 @@ namespace OMI.Formats.Pck
 
         public bool IsReadOnly => false;
 
-        public PckFileData this[string filename, PckFileType type]
+        public PckAsset this[string filename, PckAssetType assetType]
         {
             get
             {
-                var storeKey = GetStorageKey(filename, type);
+                var storeKey = GetStorageKey(filename, assetType);
                 if (!_files.Contains(storeKey))
                 {
                     throw new KeyNotFoundException(storeKey.ToString());
                 }
-                return (PckFileData)_files[storeKey];
+                return (PckAsset)_files[storeKey];
             }
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
-                _files[GetStorageKey(filename, type)] = value;
+                _files[GetStorageKey(filename, assetType)] = value;
             }
         }
 
-        public PckFileData this[int index]
+        public PckAsset this[int index]
         {
-            get => _files[index] as PckFileData;
+            get => _files[index] as PckAsset;
             set
             {
                 _ = value ?? throw new ArgumentNullException(nameof(value));
@@ -44,16 +44,16 @@ namespace OMI.Formats.Pck
             }
         }
 
-        public void Add(PckFileData value)
+        public void Add(PckAsset value)
         {
-            var key = GetStorageKey(value.Filename, value.Filetype);
+            var key = GetStorageKey(value.Filename, value.Type);
             if (_files.Contains(key))
             {
-                if (this[value.Filename, value.Filetype].Equals(value))
+                if (this[value.Filename, value.Type].Equals(value))
                 {
                     Debug.WriteLine($"Duplicate file: '{value.Filename}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
                     Debug.WriteLine($"Merging '{value.Filename}' Properties", category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    var first = this[value.Filename, value.Filetype];
+                    PckAsset first = GetFile(value.Filename, value.Type);
                     first.Properties.Merge(value.Properties);
                     return;
                 }
@@ -68,46 +68,61 @@ namespace OMI.Formats.Pck
             _files.Add(key, value);
         }
 
+        internal PckAsset GetFile(string filename, PckAssetType assetType)
+        {
+            return _files[GetStorageKey(filename, assetType)] as PckAsset;
+        }
+
         public void Clear()
         {
             _files.Clear();
         }
 
-        public bool Contains(PckFileData item)
+        public bool Contains(PckAsset item)
         {
-            return Contains(item.Filename, item.Filetype);
+            return Contains(item.Filename, item.Type);
         }
 
-        public bool Contains(string filename, PckFileType filetype)
+        public bool Contains(string filename, PckAssetType assetType)
         {
-            return _files.Contains(GetStorageKey(filename, filetype));
+            return _files.Contains(GetStorageKey(filename, assetType));
         }
 
-        private object GetStorageKey(string key, PckFileType fileType)
+        public bool Contains(PckAssetType assetType)
         {
-            return $"{key}_{fileType}";
+            foreach (var file in _files.Values.Cast<PckAsset>())
+            {
+                if (file.Type == assetType)
+                    return true;
+            }
+            return false;
         }
 
-        private object GetStoreKey(PckFileData item)
+        private object GetStorageKey(string key, PckAssetType assetType)
         {
-            return GetStorageKey(item.Filename, item.Filetype);
+            return $"{key}_{assetType}";
         }
 
-        public void CopyTo(PckFileData[] array, int arrayIndex)
+        private object GetStorageKey(PckAsset item)
+        {
+            return GetStorageKey(item.Filename, item.Type);
+        }
+
+        public void CopyTo(PckAsset[] array, int arrayIndex)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerator<PckFileData> GetEnumerator()
+        public IEnumerator<PckAsset> GetEnumerator()
         {
-            return _files.Values.Cast<PckFileData>().GetEnumerator();
+            return _files.Values.Cast<PckAsset>().GetEnumerator();
         }
 
-        public int IndexOf(PckFileData key)
+        public int IndexOf(PckAsset key)
         {
             for (int i = 0; i < _files.Count; i++)
             {
-                object key2 = ((DictionaryEntry)_files[i]).Key;
+                object key2 = _files[i];
                 if (key2.Equals(key))
                 {
                     return i;
@@ -116,30 +131,36 @@ namespace OMI.Formats.Pck
             return -1;
         }
 
-        public void Insert(int index, PckFileData item)
+        public void Insert(int index, PckAsset item)
         {
             _ = item ?? throw new ArgumentNullException(nameof(item));
-            _files.Insert(index, GetStoreKey(item), item);
+            _files.Insert(index, GetStorageKey(item), item);
         }
 
-        internal bool Remove(string filename, PckFileType filetype)
+        internal bool Remove(string filename, PckAssetType assetType)
         {
-            if (Contains(filename, filetype))
+            if (Contains(filename, assetType))
             {
-                _files.Remove(GetStorageKey(filename, filetype));
+                _files.Remove(GetStorageKey(filename, assetType));
                 return true;
             }
             return false;
         }
 
-        public bool Remove(PckFileData item)
+        internal bool RemoveKeyFromCollection(PckAsset item)
         {
-            if (item is not null)
-            {
-                item.SetEvents(null, null, null);
-                return Remove(item.Filename, item.Filetype);
-            }
-            return false;
+            return item is not null && InternalRemoveKeyFromCollection(item.Filename, item.Type);
+        }
+
+        internal bool InternalRemoveKeyFromCollection(string filename, PckAssetType assetType)
+        {
+            return Remove(filename,assetType);
+        }
+
+        public bool Remove(PckAsset item)
+        {
+            item?.SetEvents(null, null, null);
+            return RemoveKeyFromCollection(item);
         }
 
         public void RemoveDuplicates()
@@ -151,10 +172,10 @@ namespace OMI.Formats.Pck
             duplicates.Clear();
         }
 
-        public void RemoveAll(Predicate<PckFileData> value)
+        public void RemoveAll(Predicate<PckAsset> value)
         {
-            var valuesToRemove = new List<PckFileData>();
-            foreach (PckFileData item in _files.Values)
+            var valuesToRemove = new List<PckAsset>();
+            foreach (PckAsset item in _files.Values)
             {
                 if (value(item))
                     valuesToRemove.Add(item);
@@ -167,11 +188,11 @@ namespace OMI.Formats.Pck
             _files.RemoveAt(index);
         }
 
-        internal bool TryGetValue(string key, PckFileType fileType, out PckFileData value)
+        internal bool TryGetValue(string key, PckAssetType assetType, out PckAsset value)
         {
-            if (Contains(key, fileType))
+            if (Contains(key, assetType))
             {
-                value = this[key, fileType];
+                value = GetFile(key, assetType);
                 return true;
             }
             value = null;

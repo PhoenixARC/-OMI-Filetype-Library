@@ -14,11 +14,29 @@ namespace OMI.Workers.GameRule
         public GameRuleFile.CompressionType CompressionType;
         public byte[] unknownData;
 
-        public GameRuleFileHeader(uint crc, GameRuleFile.CompressionLevel compressionLevel, byte[] unknownData)
+        public GameRuleFileHeader(uint crc, GameRuleFile.CompressionLevel compressionLevel, byte[] bytes)
+            : this(crc, compressionLevel)
+        {
+            unknownData = bytes;
+        }
+
+        public GameRuleFileHeader(uint crc, GameRuleFile.CompressionLevel compressionLevel, GameRuleFile.CompressionType compressionType, byte[] bytes)
+            : this(crc, compressionLevel, compressionType)
+        {
+            unknownData = bytes;
+        }
+
+        public GameRuleFileHeader(uint crc, GameRuleFile.CompressionLevel compressionLevel)
+            : this(crc, compressionLevel, GameRuleFile.CompressionType.Unknown)
+        {
+        }
+
+        public GameRuleFileHeader(uint crc, GameRuleFile.CompressionLevel compressionLevel, GameRuleFile.CompressionType compressionType)
         {
             Crc = crc;
             CompressionLevel = compressionLevel;
-            this.unknownData = unknownData;
+            CompressionType = compressionType;
+            unknownData = new byte[4];
         }
     }
 }

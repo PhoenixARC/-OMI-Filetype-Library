@@ -46,8 +46,8 @@
     <Compile Include="Endianness.cs" />
     <Compile Include="Extentions\EndiannessAwareBinaryExtention.cs" />
     <Compile Include="Formats\BehaviourFile.cs" />
-    <Compile Include="Formats\PckFileType.cs" />
-    <Compile Include="Formats\PckFileData.cs" />
+    <Compile Include="Formats\PckAssetType.cs" />
+    <Compile Include="Formats\PckAsset.cs" />
     <Compile Include="Formats\FourjUserInterface.cs" />
     <Compile Include="Formats\GameRuleFile.cs" />
     <Compile Include="Formats\Languages.cs" />

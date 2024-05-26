@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 /*
- * most known Color information is the direct product of May/MattNL's work! check em out! 
+ * most known Color information is the direct product of MattNL's work! check em out! 
  * https://github.com/MattN-L
 */
 namespace OMI.Formats.Color

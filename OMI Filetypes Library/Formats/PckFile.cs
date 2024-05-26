@@ -14,7 +14,6 @@ namespace OMI.Formats.Pck
         public bool HasVerionString => _hasVerionString;
         public int FileCount => Files.Count;
 
-
         private FileCollection Files { get; } = new FileCollection();
         private bool _hasVerionString = false;
 
@@ -45,154 +44,152 @@ namespace OMI.Formats.Pck
                         LUT.Add(pair.Key);
                 });
             }
-            if (HasVerionString)
-                LUT.Insert(0, XMLVersionString);
             return LUT;
         }
 
         /// <summary>
-        /// Create and add new <see cref="PckFileData"/> object.
+        /// Create and add new <see cref="PckAsset"/> object.
         /// </summary>
         /// <param name="filename">Filename</param>
-        /// <param name="filetype">Filetype</param>
-        /// <returns>Added <see cref="PckFileData"/> object</returns>
-        public PckFileData CreateNewFile(string filename, PckFileType filetype)
+        /// <param name="assetType">Filetype</param>
+        /// <returns>Added <see cref="PckAsset"/> object</returns>
+        public PckAsset CreateNewFile(string filename, PckAssetType assetType)
         {
-            var file = new PckFileData(filename, filetype);
+            var file = new PckAsset(filename, assetType);
             AddFile(file);
             return file;
         }
 
         /// <summary>
-        /// Create, add and initialize new <see cref="PckFileData"/> object.
+        /// Create, add and initialize new <see cref="PckAsset"/> object.
         /// </summary>
         /// <param name="filename">Filename</param>
-        /// <param name="filetype">Filetype</param>
-        /// <returns>Initialized <see cref="PckFileData"/> object</returns>
-        public PckFileData CreateNewFile(string filename, PckFileType filetype, Func<byte[]> dataInitializier)
+        /// <param name="assetType">Filetype</param>
+        /// <returns>Initialized <see cref="PckAsset"/> object</returns>
+        public PckAsset CreateNewFile(string filename, PckAssetType assetType, Func<byte[]> dataInitializier)
         {
-            var file = CreateNewFile(filename, filetype);
+            var file = CreateNewFile(filename, assetType);
             file.SetData(dataInitializier?.Invoke());
             return file;
         }
 
         /// <summary>
-        /// Checks wether a file with <paramref name="filename"/> and <paramref name="filetype"/> exists
+        /// Checks wether a file with <paramref name="filename"/> and <paramref name="assetType"/> exists
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="assetType">Type of the file <see cref="PckAsset.FileType"/></param>
         /// <returns>True when file exists, otherwise false </returns>
-        public bool HasFile(string filename, PckFileType filetype)
+        public bool HasFile(string filename, PckAssetType assetType)
         {
-            return Files.Contains(filename, filetype);
+            return Files.Contains(filename, assetType);
         }
 
         /// <summary>
-        /// Gets the first file that Equals <paramref name="filename"/> and <paramref name="filetype"/>
+        /// Gets the first file that Equals <paramref name="filename"/> and <paramref name="assetType"/>
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="assetType">Type of the file <see cref="PckAsset.FileType"/></param>
         /// <returns>FileData if found, otherwise null</returns>
         /// <exception cref="KeyNotFoundException"></exception>
-        public PckFileData GetFile(string filename, PckFileType filetype)
+        public PckAsset GetFile(string filename, PckAssetType assetType)
         {
-            return Files[filename, filetype];
+            return Files.GetFile(filename, assetType);
         }
 
         /// <summary>
-        /// Tries to get a file with <paramref name="filename"/> and <paramref name="filetype"/>.
+        /// Tries to get a file with <paramref name="filename"/> and <paramref name="assetType"/>.
         /// </summary>
         /// <param name="filename">Path to the file in the pck</param>
-        /// <param name="filetype">Type of the file <see cref="PckFileData.FileType"/></param>
+        /// <param name="assetType">Type of the file <see cref="PckAsset.FileType"/></param>
         /// <param name="file">If succeeded <paramref name="file"/> will be non-null, otherwise null</param>
         /// <returns>True if succeeded, otherwise false</returns>
-        public bool TryGetFile(string filename, PckFileType filetype, out PckFileData file)
+        public bool TryGetFile(string filename, PckAssetType assetType, out PckAsset file)
         {
-            try
+            if (HasFile(filename, assetType))
             {
-                file = GetFile(filename, filetype);
-                return file is PckFileData;
+                file = GetFile(filename, assetType);
+                return true;
             }
-            catch (KeyNotFoundException)
-            {
                 file = null;
                 return false;
             }
+
+        private void OnPckFileNameChanging(PckAsset value, string newFilename)
+        {
+            if (value.Filename.Equals(newFilename))
+                return;
+            Files[newFilename, value.Type] = value;
+            Files.RemoveKeyFromCollection(value);
         }
 
-        private void OnPckFileNameChanging(PckFileData value, string newFilename)
+        private void OnPckAssetTypeChanging(PckAsset value, PckAssetType newAssetType)
         {
-            Files[newFilename, value.Filetype] = value;
-            if (Files.Contains(value.Filename, value.Filetype))
+            if (value.Type == newAssetType)
+                return;
+            Files[value.Filename, newAssetType] = value;
+            Files.RemoveKeyFromCollection(value);
+        }
+
+        private void OnMoveFile(PckAsset value)
+        {
+            if (Files.Contains(value.Filename, value.Type))
             {
                 Files.Remove(value);
             }
         }
 
-        private void OnPckFileTypeChanging(PckFileData value, PckFileType newFiletype)
+        public PckAsset GetOrCreate(string filename, PckAssetType assetType)
         {
-            Files[value.Filename, newFiletype] = value;
-            if (Files.Contains(value.Filename, value.Filetype))
+            if (Files.Contains(filename, assetType))
             {
-                Files.Remove(value);
+                return Files.GetFile(filename, assetType);
             }
+            return CreateNewFile(filename, assetType);
         }
 
-        private void OnMoveFile(PckFileData value)
+        public bool Contains(string filename, PckAssetType assetType)
         {
-            if (Files.Contains(value.Filename, value.Filetype))
-            {
-                Files.Remove(value);
-            }
+            return Files.Contains(filename, assetType);
         }
 
-        public PckFileData GetOrCreate(string filename, PckFileType filetype)
+        public bool Contains(PckAssetType assetType)
         {
-            if (Files.Contains(filename, filetype))
-            {
-                return Files[filename, filetype];
-            }
-            return new PckFileData(filename, filetype, OnPckFileNameChanging, OnPckFileTypeChanging, OnMoveFile);
+            return Files.Contains(assetType);
         }
 
-        public bool Contains(string filename, PckFileType filetype)
-        {
-            return Files.Contains(filename, filetype);
-        }
-
-        public void AddFile(PckFileData file)
+        public void AddFile(PckAsset file)
         {
             file.Move();
-            file.SetEvents(OnPckFileNameChanging, OnPckFileTypeChanging, OnMoveFile);
+            file.SetEvents(OnPckFileNameChanging, OnPckAssetTypeChanging, OnMoveFile);
             Files.Add(file);
         }
 
-        public IReadOnlyCollection<PckFileData> GetFiles()
+        public IReadOnlyCollection<PckAsset> GetFiles()
         {
-            return new ReadOnlyCollection<PckFileData>(Files);
+            return new ReadOnlyCollection<PckAsset>(Files);
         }
 
-        public bool TryGetValue(string filename, PckFileType filetype, out PckFileData file)
+        public bool TryGetValue(string filename, PckAssetType assetType, out PckAsset file)
         {
-            return Files.TryGetValue(filename, filetype, out file);
+            return Files.TryGetValue(filename, assetType, out file);
         }
 
-        public bool RemoveFile(PckFileData file)
+        public bool RemoveFile(PckAsset file)
         {
             return Files.Remove(file);
         }
 
-        public void RemoveAll(Predicate<PckFileData> value)
+        public void RemoveAll(Predicate<PckAsset> value)
         {
             Files.RemoveAll(value);
         }
 
-        public void InsertFile(int index, PckFileData file)
+        public void InsertFile(int index, PckAsset file)
         {
             Files.Insert(index, file);
         }
 
-        public int IndexOfFile(PckFileData file)
+        public int IndexOfFile(PckAsset file)
         {
             return Files.IndexOf(file);
         }

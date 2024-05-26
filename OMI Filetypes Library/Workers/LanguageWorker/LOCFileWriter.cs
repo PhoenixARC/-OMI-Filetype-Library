@@ -9,13 +9,13 @@ namespace OMI.Workers.Language
     public class LOCFileWriter : IDataFormatWriter
     {
         private LOCFile _locfile;
-        private int _type;
+        private int _version;
 
-        public LOCFileWriter(LOCFile file, int type)
+        public LOCFileWriter(LOCFile file, int version)
         {
             _ = file ?? throw new ArgumentNullException(nameof(file));
             _locfile = file;
-            _type = type;
+            _version = version;
         }
 
         public void WriteToFile(string filename)
@@ -30,15 +30,19 @@ namespace OMI.Workers.Language
         {
             using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.UTF8, leaveOpen: true, Endianness.BigEndian))
             {
-                writer.Write(_type);
+                writer.Write(_version);
                 writer.Write(_locfile.Languages.Count);
-                if (_type == 2)
+                if (_version == 2)
                 {
-                    // dont use uids
-                    writer.Write(false);
+                    writer.Write(_locfile.hasUids);
                     writer.Write(_locfile.LocKeys.Count);
                     foreach (var key in _locfile.LocKeys.Keys)
-                        WriteString(writer, key);
+                    {
+                        if (_locfile.hasUids)
+                            WriteUid(writer, key);
+                        else
+                            WriteString(writer, key);
+                    }
                 }
                 WriteLanguages(writer);
                 WriteLanguageEntries(writer);
@@ -47,45 +51,46 @@ namespace OMI.Workers.Language
 
         private void WriteLanguages(EndiannessAwareBinaryWriter writer)
         {
-            _locfile.Languages.ForEach(language =>
+            foreach (var language in _locfile.Languages)
             {
                 WriteString(writer, language);
                 
-                //Calculate the size of the language entry
+                // Calculate the size of the language entry
 
                 int size = 0;
-                size += sizeof(int); // null int
-                size += sizeof(byte); // null byte
-                size += sizeof(short) + writer.EncodingScheme.GetByteCount(language);
+                size += sizeof(int); // version
+                if (_version > 0)
+                    size += sizeof(byte); // bool
+                size += sizeof(short) + writer.EncodingScheme.GetByteCount(language); // language name
                 size += sizeof(int); // key count
 
                 foreach (var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (_type == 0)
+                    if (_version == 0)
                         size += sizeof(short) + writer.EncodingScheme.GetByteCount(locKey); // loc key string
-                    size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc key string
+                    size += sizeof(short) + writer.EncodingScheme.GetByteCount(_locfile.LocKeys[locKey][language]); // loc value string
                 }
-
                 writer.Write(size);
-            });
+            };
         }
 
         private void WriteLanguageEntries(EndiannessAwareBinaryWriter writer)
         {
-            _locfile.Languages.ForEach(language =>
+            foreach(var language in _locfile.Languages)
             {
-                writer.Write(_type);
-                if (_type > 0)
-                    writer.Write(false);
+                writer.Write(_version);
+                if (_version > 0)
+                    writer.Write(_locfile.hasUids);
 
                 WriteString(writer, language);
                 writer.Write(_locfile.LocKeys.Keys.Count);
                 foreach(var locKey in _locfile.LocKeys.Keys)
                 {
-                    if (_type == 0) WriteString(writer, locKey);
+                    if (_version == 0)
+                        WriteString(writer, locKey);
                     WriteString(writer, _locfile.LocKeys[locKey][language]);
                 }
-            });
+            };
         }
 
         private void WriteString(EndiannessAwareBinaryWriter writer, string s)
@@ -93,6 +98,12 @@ namespace OMI.Workers.Language
             var length = Convert.ToInt16(writer.EncodingScheme.GetByteCount(s));
             writer.Write(length);
             writer.WriteString(s);
+        }
+
+        private void WriteUid(EndiannessAwareBinaryWriter writer, string s)
+        {
+            uint uid = uint.Parse(s, System.Globalization.NumberStyles.HexNumber, null);   
+            writer.Write(uid);
         }
     }
 }

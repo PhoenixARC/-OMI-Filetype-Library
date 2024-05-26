@@ -11,29 +11,24 @@ namespace OMI.Workers.GameRule
     /// Provides the RLE codec for any integer data type.
     /// </summary>
     /// <typeparam name="T">The data's type. Must be an integer type or an ArgumentException will be thrown</typeparam>
-    static class RLE<T> where T : struct, IConvertible
+    static class RLE
     {
         /// <summary>
         /// This is the marker that identifies a compressed run
         /// </summary>
-        private static T rleMarker;
+        private static byte rleMarker = byte.MaxValue;
 
         /// <summary>
         /// A run can be at most as long as the marker - 1
         /// </summary>
-        private static ulong maxLength;
-
-        static RLE()
-        {
-            GetMaxValues();
-        }
+        private static byte maxLength = byte.MaxValue - 1;
 
         /// <summary>
         /// RLE-Encodes a data set.
         /// </summary>
         /// <param name="data">The data to encode</param>
         /// <returns>Encoded data</returns>
-        public static IEnumerable<T> Encode(IEnumerable<T> data)
+        public static IEnumerable<byte> Encode(IEnumerable<byte> data)
         {
             var enumerator = data.GetEnumerator();
 
@@ -41,7 +36,7 @@ namespace OMI.Workers.GameRule
                 yield break;
 
             var firstRunValue = enumerator.Current;
-            ulong runLength = 1;
+            byte runLength = 1;
             while (enumerator.MoveNext())
             {
                 var currentValue = enumerator.Current;
@@ -78,7 +73,7 @@ namespace OMI.Workers.GameRule
         /// </summary>
         /// <param name="data">RLE-encoded data</param>
         /// <returns>The original data</returns>
-        public static IEnumerable<T> Decode(IEnumerable<T> data)
+        public static IEnumerable<byte> Decode(IEnumerable<byte> data)
         {
             var enumerator = data.GetEnumerator();
             if (!enumerator.MoveNext())
@@ -106,19 +101,26 @@ namespace OMI.Workers.GameRule
                     else
                     {
                         //rle marker
-                        var length = enumerator.Current.ToInt64(CultureInfo.InvariantCulture);
-                        if (!enumerator.MoveNext())
-                            throw new ArgumentException("The provided data is not properly encoded.");
-                        var val = enumerator.Current;
-                        for (var j = 0; j < length + 1; ++j)
-                            yield return val;
+                        var length = enumerator.Current;
+                        if (length > 2 && length <= maxLength)
+                        {
+                            if (!enumerator.MoveNext())
+                                throw new ArgumentException("The provided data is not properly encoded.");
+                            var val = enumerator.Current;
+                            for (var j = 0; j < length + 1; ++j)
+                                yield return val;
+                        }
+                        else
+                        {
+                            yield return length;
+                        }
                     }
                 }
             }
             while (enumerator.MoveNext());
         }
 
-        private static IEnumerable<T> MakeRun(T value, ulong length)
+        private static IEnumerable<byte> MakeRun(byte value, byte length)
         {
             if ((length <= 3 && !value.Equals(rleMarker)) || length <= 1)
             {
@@ -132,82 +134,8 @@ namespace OMI.Workers.GameRule
             {
                 //compressed run
                 yield return rleMarker;
-                yield return (T)(dynamic)(length - 1);
+                yield return (byte)(length - 1);
                 yield return value;
-            }
-        }
-
-
-        private static void GetMaxValues()
-        {
-            TypeCode typeCode = Type.GetTypeCode(typeof(T));
-            switch (typeCode)
-            {
-                case TypeCode.Byte:
-                    {
-                        var limit = byte.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.Char:
-                    {
-                        var limit = char.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.Int16:
-                    {
-                        var limit = short.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.Int32:
-                    {
-                        var limit = int.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.Int64:
-                    {
-                        var limit = long.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.SByte:
-                    {
-                        var limit = sbyte.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.UInt16:
-                    {
-                        var limit = ushort.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.UInt32:
-                    {
-                        var limit = uint.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                case TypeCode.UInt64:
-                    {
-                        var limit = ulong.MaxValue;
-                        rleMarker = __refvalue(__makeref(limit), T);
-                        maxLength = (ulong)(limit - 1);
-                        break;
-                    }
-                default:
-                    throw new ArgumentException("The provided type parameter is not an integer type");
             }
         }
     }

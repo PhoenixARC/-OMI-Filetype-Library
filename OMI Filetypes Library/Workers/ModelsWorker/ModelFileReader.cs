@@ -1,9 +1,11 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.IO;
 using OMI.Formats.Model;
 using System.Diagnostics;
+
 /*
-* all known Model/Material information is the direct product of May/MattNL's work! check em out! 
+* all known Model/Material information is the direct product of MattNL's work! check em out! 
 * https://github.com/MattN-L
 */
 namespace OMI.Workers.Model
@@ -35,7 +37,8 @@ namespace OMI.Workers.Model
             var container = new ModelContainer();
             using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, true, Endianness.BigEndian))
             {
-                int version = reader.ReadInt32();
+                container.Version = reader.ReadInt32();
+
                 int NumOfModels = reader.ReadInt32();
 
                 for (int i = 0; i < NumOfModels; i++)
@@ -51,12 +54,11 @@ namespace OMI.Workers.Model
                     for (int j = 0; j < NumOfParts; j++)
                     {
                         ModelPart part = new ModelPart();
-                        string partName = ReadString(reader);
+                        part.Name = ReadString(reader);
 
-                        if (version > 1)
+                        if(container.Version > 1)
                         {
-                            string partParentName = ReadString(reader);
-                            Debug.WriteLineIf(partParentName.Length > 0, partParentName, category: nameof(ModelFileReader.FromStream));
+                            part.ParentName = ReadString(reader);
                         }
 
                         part.TranslationX = reader.ReadSingle();
@@ -65,9 +67,14 @@ namespace OMI.Workers.Model
                         part.UnknownFloat = reader.ReadSingle();
                         part.TextureOffsetX = reader.ReadSingle();
                         part.TextureOffsetY = reader.ReadSingle();
-                        part.RotationX = reader.ReadSingle();
-                        part.RotationY = reader.ReadSingle();
-                        part.RotationZ = reader.ReadSingle();
+
+                        if (container.Version > 0)
+                        {
+                            part.RotationX = reader.ReadSingle();
+                            part.RotationY = reader.ReadSingle();
+                            part.RotationZ = reader.ReadSingle();
+                        }
+
                         int NumOfBoxes = reader.ReadInt32();
 
                         for (int x = 0; x < NumOfBoxes; x++)
@@ -85,8 +92,7 @@ namespace OMI.Workers.Model
                             box.Mirror = reader.ReadBoolean();
                             part.Boxes.Add(box);
                         }
-                        model.Parts.Add(partName, part);
-
+                        model.Parts.Add(part.Name, part);
                     }
                     container.Models.Add(modelName, model);
                 }

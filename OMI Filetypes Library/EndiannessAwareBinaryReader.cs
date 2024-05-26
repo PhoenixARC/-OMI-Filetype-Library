@@ -16,7 +16,6 @@
  * 3. This notice may not be removed or altered from any source distribution.
 **/
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -25,7 +24,7 @@ using System.Text;
 */
 namespace OMI
 {
-    public class EndiannessAwareBinaryReader : BinaryReader
+    public sealed class EndiannessAwareBinaryReader : BinaryReader
     {
         private readonly Endianness _endianness = Endianness.LittleEndian;
         private readonly Encoding _encoding;

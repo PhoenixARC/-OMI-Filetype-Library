@@ -1,6 +1,6 @@
 ﻿namespace OMI.Formats.Pck
 {
-    public enum PckFileType : int
+    public enum PckAssetType : int
     {
         SkinFile = 0,  // *.png
         CapeFile = 1,  // *.png
