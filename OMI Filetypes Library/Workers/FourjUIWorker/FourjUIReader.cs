@@ -15,15 +15,15 @@
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
 **/
+using System;
 using System.IO;
 using System.Text;
+using System.Drawing;
 using System.Diagnostics;
+using System.Collections.Generic;
+using OMI.Extentions;
 using OMI.Formats.FUI;
 using OMI.Formats.FUI.Components;
-using System;
-using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
-using OMI.Extentions;
 /*
 * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
 * https://github.com/NessieHax
@@ -62,7 +62,7 @@ namespace OMI.Workers.FUI
                 UIContainer.TimelineActions = new List<FuiTimelineAction>(reader.ReadInt32());
                 UIContainer.Shapes = new List<FuiShape>(reader.ReadInt32());
                 UIContainer.ShapeComponents = new List<FuiShapeComponent>(reader.ReadInt32());
-                UIContainer.Verts = new List<FuiVert>(reader.ReadInt32());
+                UIContainer.Verts = new List<PointF>(reader.ReadInt32());
                 UIContainer.TimelineFrames = new List<FuiTimelineFrame>(reader.ReadInt32());
                 UIContainer.TimelineEvents = new List<FuiTimelineEvent>(reader.ReadInt32());
                 UIContainer.References = new List<FuiReference>(reader.ReadInt32());
@@ -75,10 +75,10 @@ namespace OMI.Workers.FUI
                 UIContainer.FontNames = new List<FuiFontName>(reader.ReadInt32());
                 UIContainer.ImportAssets = new List<string>(reader.ReadInt32());
 
-                UIContainer.Header.FrameSize.MinX = reader.ReadSingle();
-                UIContainer.Header.FrameSize.MaxX = reader.ReadSingle();
-                UIContainer.Header.FrameSize.MinY = reader.ReadSingle();
-                UIContainer.Header.FrameSize.MaxY = reader.ReadSingle();
+                UIContainer.Header.FrameSize.Min.X = reader.ReadSingle();
+                UIContainer.Header.FrameSize.Max.X = reader.ReadSingle();
+                UIContainer.Header.FrameSize.Min.Y = reader.ReadSingle();
+                UIContainer.Header.FrameSize.Max.Y = reader.ReadSingle();
 
                 reader.Fill(UIContainer.Timelines, ReadTimeline);
                 reader.Fill(UIContainer.TimelineActions, ReadTimelineAction);
@@ -115,13 +115,13 @@ namespace OMI.Workers.FUI
         {
             FuiBitmap tline = new FuiBitmap();
             tline.SymbolIndex = reader.ReadInt32();
-            tline.ImageFormat = reader.ReadInt32();
-            tline.Width = reader.ReadInt32();
-            tline.Height = reader.ReadInt32();
+            tline.ImageFormat = (FuiBitmap.FuiImageFormat)reader.ReadInt32();
+            tline.ImageSize.Width = reader.ReadInt32();
+            tline.ImageSize.Height = reader.ReadInt32();
             tline.Offset = reader.ReadInt32();
             tline.Size = reader.ReadInt32();
             tline.ZlibDataOffset = reader.ReadInt32();
-            tline.Unknown1 = reader.ReadInt32();
+            //tline.BindHandle = reader.ReadInt32();
             return tline;
         }
 
@@ -147,14 +147,14 @@ namespace OMI.Workers.FUI
         {
             FuiEdittext edittext = new FuiEdittext();
             edittext.Unknown0 = reader.ReadInt32();
-            edittext.Rectangle.MinX = reader.ReadSingle();
-            edittext.Rectangle.MaxX = reader.ReadSingle();
-            edittext.Rectangle.MinY = reader.ReadSingle();
-            edittext.Rectangle.MaxY = reader.ReadSingle();
-            edittext.FontID = reader.ReadInt32();
-            edittext.Unknown1 = reader.ReadSingle();
-            edittext.Color = FuiRGBA.GetColor(reader.ReadInt32());
-            edittext.Unknown2 = reader.ReadInt32();
+            edittext.Rectangle.Min.X = reader.ReadSingle();
+            edittext.Rectangle.Max.X = reader.ReadSingle();
+            edittext.Rectangle.Min.Y = reader.ReadSingle();
+            edittext.Rectangle.Max.Y = reader.ReadSingle();
+            edittext.FontId = reader.ReadInt32();
+            edittext.FontScale = reader.ReadSingle();
+            edittext.Color = GetColorFromRGBA(reader.ReadInt32());
+            edittext.Alignment = reader.ReadInt32();
             edittext.Unknown3 = reader.ReadInt32();
             edittext.Unknown4 = reader.ReadInt32();
             edittext.Unknown5 = reader.ReadInt32();
@@ -162,6 +162,11 @@ namespace OMI.Workers.FUI
             edittext.Unknown7 = reader.ReadInt32();
             edittext.htmlSource = reader.ReadString(0x100);
             return edittext;
+        }
+
+        private static System.Drawing.Color GetColorFromRGBA(int rgba)
+        {
+            return System.Drawing.Color.FromArgb(rgba & 0xff | rgba >> 8 & 0xffffff);
         }
 
         private FuiReference ReadReference(EndiannessAwareBinaryReader reader)
@@ -187,12 +192,12 @@ namespace OMI.Workers.FUI
             timelineEvent.Index = reader.ReadInt16();
             timelineEvent.Unknown1 = reader.ReadInt16();
             timelineEvent.NameIndex = reader.ReadInt16();
-            timelineEvent.Matrix.ScaleX = reader.ReadSingle();
-            timelineEvent.Matrix.ScaleY = reader.ReadSingle();
+            timelineEvent.Matrix.Scale.Width = reader.ReadSingle();
+            timelineEvent.Matrix.Scale.Height = reader.ReadSingle();
             timelineEvent.Matrix.RotateSkew0 = reader.ReadSingle();
             timelineEvent.Matrix.RotateSkew1 = reader.ReadSingle();
-            timelineEvent.Matrix.TranslationX = reader.ReadSingle();
-            timelineEvent.Matrix.TranslationY = reader.ReadSingle();
+            timelineEvent.Matrix.Translation.X = reader.ReadSingle();
+            timelineEvent.Matrix.Translation.Y = reader.ReadSingle();
             timelineEvent.ColorTransform.RedMultTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.GreenMultTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.BlueMultTerm = reader.ReadSingle();
@@ -201,7 +206,7 @@ namespace OMI.Workers.FUI
             timelineEvent.ColorTransform.GreenAddTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.BlueAddTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.AlphaAddTerm = reader.ReadSingle();
-            timelineEvent.Color = FuiRGBA.GetColor(reader.ReadInt32());
+            timelineEvent.Color = GetColorFromRGBA(reader.ReadInt32());
             return timelineEvent;
         }
 
@@ -214,9 +219,9 @@ namespace OMI.Workers.FUI
             return timelineFrame;
         }
 
-        private FuiVert ReadVert(EndiannessAwareBinaryReader reader)
+        private PointF ReadVert(EndiannessAwareBinaryReader reader)
         {
-            FuiVert vert = new FuiVert();
+            PointF vert = new PointF();
             vert.X = reader.ReadSingle();
             vert.Y = reader.ReadSingle();
             return vert;
@@ -225,15 +230,15 @@ namespace OMI.Workers.FUI
         private FuiShapeComponent ReadShapeComponent(EndiannessAwareBinaryReader reader)
         {
             FuiShapeComponent shapeComponent = new FuiShapeComponent();
-            shapeComponent.FillInfo.Type = reader.ReadInt32();
-            shapeComponent.FillInfo.Color = FuiRGBA.GetColor(reader.ReadInt32());
+            shapeComponent.FillInfo.Type = (FuiFillStyle.FillType)reader.ReadInt32();
+            shapeComponent.FillInfo.Color = GetColorFromRGBA(reader.ReadInt32());
             shapeComponent.FillInfo.BitmapIndex = reader.ReadInt32();
-            shapeComponent.FillInfo.Matrix.ScaleX = reader.ReadSingle();
-            shapeComponent.FillInfo.Matrix.ScaleY = reader.ReadSingle();
+            shapeComponent.FillInfo.Matrix.Scale.Width = reader.ReadSingle();
+            shapeComponent.FillInfo.Matrix.Scale.Height = reader.ReadSingle();
             shapeComponent.FillInfo.Matrix.RotateSkew0 = reader.ReadSingle();
             shapeComponent.FillInfo.Matrix.RotateSkew1 = reader.ReadSingle();
-            shapeComponent.FillInfo.Matrix.TranslationX = reader.ReadSingle();
-            shapeComponent.FillInfo.Matrix.TranslationY = reader.ReadSingle();
+            shapeComponent.FillInfo.Matrix.Translation.X = reader.ReadSingle();
+            shapeComponent.FillInfo.Matrix.Translation.Y = reader.ReadSingle();
             shapeComponent.VertIndex = reader.ReadInt32();
             shapeComponent.VertCount = reader.ReadInt32();
             return shapeComponent;
@@ -245,10 +250,10 @@ namespace OMI.Workers.FUI
             shape.Unknown = reader.ReadInt32();
             shape.ShapeComponentIndex = reader.ReadInt32();
             shape.ShapeComponentCount = reader.ReadInt32();
-            shape.Rectangle.MinX = reader.ReadInt32();
-            shape.Rectangle.MaxX = reader.ReadInt32();
-            shape.Rectangle.MinY = reader.ReadInt32();
-            shape.Rectangle.MaxY = reader.ReadInt32();
+            shape.Rectangle.Min.X = reader.ReadInt32();
+            shape.Rectangle.Max.X = reader.ReadInt32();
+            shape.Rectangle.Min.Y = reader.ReadInt32();
+            shape.Rectangle.Max.Y = reader.ReadInt32();
             return shape;
         }
 
@@ -260,10 +265,10 @@ namespace OMI.Workers.FUI
             timeline.FrameCount = reader.ReadInt16();
             timeline.ActionIndex = reader.ReadInt16();
             timeline.ActionCount = reader.ReadInt16();
-            timeline.Rectangle.MinX = reader.ReadInt32();
-            timeline.Rectangle.MaxX = reader.ReadInt32();
-            timeline.Rectangle.MinY = reader.ReadInt32();
-            timeline.Rectangle.MaxY = reader.ReadInt32();
+            timeline.Rectangle.Min.X = reader.ReadInt32();
+            timeline.Rectangle.Max.X = reader.ReadInt32();
+            timeline.Rectangle.Min.Y = reader.ReadInt32();
+            timeline.Rectangle.Max.Y = reader.ReadInt32();
             return timeline;
         }
 
