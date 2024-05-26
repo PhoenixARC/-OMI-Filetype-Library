@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
@@ -13,14 +14,14 @@ using System.Threading.Tasks;
 */
 namespace OMI.Formats.FUI
 {
-    public class FourjUserInterface
+    public sealed class FourjUserInterface
     {
         public Components.FuiHeader Header;
         public List<Components.FuiTimeline> Timelines;
         public List<Components.FuiTimelineAction> TimelineActions;
         public List<Components.FuiShape> Shapes;
         public List<Components.FuiShapeComponent> ShapeComponents;
-        public List<Components.FuiVert> Verts;
+        public List<PointF> Verts;
         public List<Components.FuiTimelineFrame> TimelineFrames;
         public List<Components.FuiTimelineEvent> TimelineEvents;
         public List<string> TimelineEventNames;
@@ -40,7 +41,7 @@ namespace OMI.Formats.FUI
 
     namespace Components
     {
-        public class FuiHeader
+        public sealed class FuiHeader
         {
             public static readonly byte DefaultVersion = 1;
             public static readonly long DefaultSignature = DefaultVersion << 56 | 0x495546 << 32;
@@ -61,7 +62,7 @@ namespace OMI.Formats.FUI
             }
         }
 
-        public class FuiTimeline
+        public sealed class FuiTimeline
         {
             public int SymbolIndex;
             public short FrameIndex;
@@ -95,12 +96,6 @@ namespace OMI.Formats.FUI
             public int VertCount;
         }
 
-        public class FuiVert
-        {
-            public float X;
-            public float Y;
-        }
-
         public class FuiTimelineFrame
         {
             /// <summary>
@@ -119,7 +114,7 @@ namespace OMI.Formats.FUI
             public short Index;
             public short Unknown1;
             public short NameIndex;
-            public FuiMatrix Matrix = new FuiMatrix();
+            public FuiMatrix Matrix;
             public FuiColorTransform ColorTransform = new FuiColorTransform();
             public System.Drawing.Color Color;
         }
@@ -138,10 +133,10 @@ namespace OMI.Formats.FUI
         {
             public int Unknown0;
             public FuiRect Rectangle = new FuiRect();
-            public int FontID;
-            public float Unknown1;
+            public int FontId;
+            public float FontScale;
             public System.Drawing.Color Color;
-            public int Unknown2;
+            public int Alignment; // 0 - 3
             public int Unknown3;
             public int Unknown4;
             public int Unknown5;
@@ -174,57 +169,55 @@ namespace OMI.Formats.FUI
 
         public class FuiBitmap
         {
+            public enum FuiImageFormat
+            {
+                PNG_WITH_ALPHA_DATA = 1,
+                PNG_NO_ALPHA_DATA = 3,
+                JPEG_NO_ALPHA_DATA = 6,
+                JPEG_UNKNOWN = 7,
+                /// <summary>
+                /// <see cref="ZlibDataOffset"/> has to be set!
+                /// </summary>
+                JPEG_WITH_ALPHA_DATA = 8
+            }
+
             public int SymbolIndex;
-            public int ImageFormat;
-            public int Width;
-            public int Height;
+            public FuiImageFormat ImageFormat;
+            public Size ImageSize;
             public int Offset;
             public int Size;
             public int ZlibDataOffset;
-            public int Unknown1;
+            /// <summary>
+            /// Preserved
+            /// </summary>
+            public readonly int BindHandle = 0;
         }
 
-        public class FuiRect
+        public struct FuiRect
         {
-            public float MinX;
-            public float MinY;
-            public float MaxX;
-            public float MaxY;
+            public Vector2 Min;
+            public Vector2 Max;
 
-            public float Width => MaxX - MinX;
-            public float Height => MaxY - MinY;
+            public float Width => Max.X - Min.X;
+            public float Height => Max.Y - Min.Y;
+
+            public SizeF Size => new SizeF(Width, Height);
 
             public override string ToString()
             {
-                return string.Format("{0}x{1}", Width, Height);
-            }
-        }
-        
-        public static class FuiRGBA
-        {
-            public static System.Drawing.Color GetColor(int rgba)
-            {
-                return System.Drawing.Color.FromArgb(rgba & 0xff | rgba >> 8 & 0xffffff);
-            }
-            
-            public static int GetColor(System.Drawing.Color color)
-            {
-                int argb = color.ToArgb();
-                return (argb & 0xffffff) << 8 | argb >> 24 & 0xff;
+                return Size.ToString();
             }
         }
 
-        public class FuiMatrix
+        public struct FuiMatrix
         {
-            public float ScaleX;
-            public float ScaleY;
+            public SizeF Scale;
             public float RotateSkew0;
             public float RotateSkew1;
-            public float TranslationX;
-            public float TranslationY;
+            public PointF Translation;
         }
         
-        public class FuiColorTransform
+        public struct FuiColorTransform
         {
             public float RedMultTerm;
             public float GreenMultTerm;
@@ -236,12 +229,19 @@ namespace OMI.Formats.FUI
             public float AlphaAddTerm;
         }
         
-        public class FuiFillStyle
+        public struct FuiFillStyle
         {
-            public int Type;
+            public enum FillType
+            {
+                Color = 1,
+                //Unknown = 3,
+                Image = 5,
+            }
+
+            public FillType Type;
             public System.Drawing.Color Color;
             public int BitmapIndex;
-            public FuiMatrix Matrix = new FuiMatrix();
+            public FuiMatrix Matrix;
         }
         
         internal enum fuiObject_eFuiObjectType

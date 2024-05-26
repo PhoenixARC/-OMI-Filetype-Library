@@ -15,11 +15,11 @@
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
 **/
+using System.Drawing;
 using System.IO;
 using System.Text;
 using OMI.Formats.FUI;
 using OMI.Formats.FUI.Components;
-using OMI.Extentions;
 /*
 * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
 * https://github.com/NessieHax
@@ -65,10 +65,10 @@ namespace OMI.Workers.FUI
                 writer.Write(0);
                 writer.Write(_UIContainer.FontNames.Count);
                 writer.Write(_UIContainer.ImportAssets.Count);
-                writer.Write(_UIContainer.Header.FrameSize.MinX);
-                writer.Write(_UIContainer.Header.FrameSize.MaxX);
-                writer.Write(_UIContainer.Header.FrameSize.MinY);
-                writer.Write(_UIContainer.Header.FrameSize.MaxY);
+                writer.Write(_UIContainer.Header.FrameSize.Min.X);
+                writer.Write(_UIContainer.Header.FrameSize.Max.X);
+                writer.Write(_UIContainer.Header.FrameSize.Min.Y);
+                writer.Write(_UIContainer.Header.FrameSize.Max.Y);
 
                 foreach (FuiTimeline timeline in _UIContainer.Timelines)
                 {
@@ -77,10 +77,10 @@ namespace OMI.Workers.FUI
                     writer.Write(timeline.FrameCount);
                     writer.Write(timeline.ActionIndex);
                     writer.Write(timeline.ActionCount);
-                    writer.Write(timeline.Rectangle.MinX);
-                    writer.Write(timeline.Rectangle.MaxX);
-                    writer.Write(timeline.Rectangle.MinY);
-                    writer.Write(timeline.Rectangle.MaxY);
+                    writer.Write(timeline.Rectangle.Min.X);
+                    writer.Write(timeline.Rectangle.Max.X);
+                    writer.Write(timeline.Rectangle.Min.Y);
+                    writer.Write(timeline.Rectangle.Max.Y);
                 }
                 foreach (FuiTimelineAction timelineAction in _UIContainer.TimelineActions)
                 {
@@ -95,26 +95,26 @@ namespace OMI.Workers.FUI
                     writer.Write(shape.Unknown);
                     writer.Write(shape.ShapeComponentIndex);
                     writer.Write(shape.ShapeComponentCount);
-                    writer.Write(shape.Rectangle.MinX);
-                    writer.Write(shape.Rectangle.MaxX);
-                    writer.Write(shape.Rectangle.MinY);
-                    writer.Write(shape.Rectangle.MaxY);
+                    writer.Write(shape.Rectangle.Min.X);
+                    writer.Write(shape.Rectangle.Max.X);
+                    writer.Write(shape.Rectangle.Min.Y);
+                    writer.Write(shape.Rectangle.Max.Y);
                 }
                 foreach (FuiShapeComponent shapeComponent in _UIContainer.ShapeComponents)
                 {
-                    writer.Write(shapeComponent.FillInfo.Type);
-                    writer.Write(FuiRGBA.GetColor(shapeComponent.FillInfo.Color));
+                    writer.Write((int)shapeComponent.FillInfo.Type);
+                    writer.Write(GetRGBAFromColor(shapeComponent.FillInfo.Color));
                     writer.Write(shapeComponent.FillInfo.BitmapIndex);
-                    writer.Write(shapeComponent.FillInfo.Matrix.ScaleX);
-                    writer.Write(shapeComponent.FillInfo.Matrix.ScaleY);
+                    writer.Write(shapeComponent.FillInfo.Matrix.Scale.Width);
+                    writer.Write(shapeComponent.FillInfo.Matrix.Scale.Height);
                     writer.Write(shapeComponent.FillInfo.Matrix.RotateSkew0);
                     writer.Write(shapeComponent.FillInfo.Matrix.RotateSkew1);
-                    writer.Write(shapeComponent.FillInfo.Matrix.TranslationX);
-                    writer.Write(shapeComponent.FillInfo.Matrix.TranslationY);
+                    writer.Write(shapeComponent.FillInfo.Matrix.Translation.X);
+                    writer.Write(shapeComponent.FillInfo.Matrix.Translation.Y);
                     writer.Write(shapeComponent.VertIndex);
                     writer.Write(shapeComponent.VertCount);
                 }
-                foreach (FuiVert vert in _UIContainer.Verts)
+                foreach (PointF vert in _UIContainer.Verts)
                 {
                     writer.Write(vert.X);
                     writer.Write(vert.Y);
@@ -133,12 +133,12 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.Index);
                     writer.Write(timelineEvent.Unknown1);
                     writer.Write(timelineEvent.NameIndex);
-                    writer.Write(timelineEvent.Matrix.ScaleX);
-                    writer.Write(timelineEvent.Matrix.ScaleY);
+                    writer.Write(timelineEvent.Matrix.Scale.Width);
+                    writer.Write(timelineEvent.Matrix.Scale.Height);
                     writer.Write(timelineEvent.Matrix.RotateSkew0);
                     writer.Write(timelineEvent.Matrix.RotateSkew1);
-                    writer.Write(timelineEvent.Matrix.TranslationX);
-                    writer.Write(timelineEvent.Matrix.TranslationY);
+                    writer.Write(timelineEvent.Matrix.Translation.X);
+                    writer.Write(timelineEvent.Matrix.Translation.Y);
                     writer.Write(timelineEvent.ColorTransform.RedMultTerm);
                     writer.Write(timelineEvent.ColorTransform.GreenMultTerm);
                     writer.Write(timelineEvent.ColorTransform.BlueMultTerm);
@@ -147,7 +147,7 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.ColorTransform.GreenAddTerm);
                     writer.Write(timelineEvent.ColorTransform.BlueAddTerm);
                     writer.Write(timelineEvent.ColorTransform.AlphaAddTerm);
-                    writer.Write(FuiRGBA.GetColor(timelineEvent.Color));
+                    writer.Write(GetRGBAFromColor(timelineEvent.Color));
                 }
                 foreach (var eventName in _UIContainer.TimelineEventNames)
                 {
@@ -162,14 +162,14 @@ namespace OMI.Workers.FUI
                 foreach (FuiEdittext edittext in _UIContainer.Edittexts)
                 {
                     writer.Write(edittext.Unknown0);
-                    writer.Write(edittext.Rectangle.MinX);
-                    writer.Write(edittext.Rectangle.MaxX);
-                    writer.Write(edittext.Rectangle.MinY);
-                    writer.Write(edittext.Rectangle.MaxY);
-                    writer.Write(edittext.FontID);
-                    writer.Write(edittext.Unknown1);
-                    writer.Write(FuiRGBA.GetColor(edittext.Color));
-                    writer.Write(edittext.Unknown2);
+                    writer.Write(edittext.Rectangle.Min.X);
+                    writer.Write(edittext.Rectangle.Max.X);
+                    writer.Write(edittext.Rectangle.Min.Y);
+                    writer.Write(edittext.Rectangle.Max.Y);
+                    writer.Write(edittext.FontId);
+                    writer.Write(edittext.FontScale);
+                    writer.Write(GetRGBAFromColor(edittext.Color));
+                    writer.Write(edittext.Alignment);
                     writer.Write(edittext.Unknown3);
                     writer.Write(edittext.Unknown4);
                     writer.Write(edittext.Unknown5);
@@ -196,19 +196,25 @@ namespace OMI.Workers.FUI
                 foreach (FuiBitmap bitmap in _UIContainer.Bitmaps)
                 {
                     writer.Write(bitmap.SymbolIndex);
-                    writer.Write(bitmap.ImageFormat);
-                    writer.Write(bitmap.Width);
-                    writer.Write(bitmap.Height);
+                    writer.Write((int)bitmap.ImageFormat);
+                    writer.Write(bitmap.ImageSize.Width);
+                    writer.Write(bitmap.ImageSize.Height);
                     writer.Write(bitmap.Offset);
                     writer.Write(bitmap.Size);
                     writer.Write(bitmap.ZlibDataOffset);
-                    writer.Write(bitmap.Unknown1);
+                    writer.Write(bitmap.BindHandle);
                 }
                 foreach (var imgData in _UIContainer.ImagesData)
                 {
                     writer.Write(imgData);
                 }
             }
+        }
+
+        private static int GetRGBAFromColor(System.Drawing.Color color)
+        {
+            int argb = color.ToArgb();
+            return (argb & 0xffffff) << 8 | argb >> 24 & 0xff;
         }
 
         private void WriteByte(Stream stream, byte b)
