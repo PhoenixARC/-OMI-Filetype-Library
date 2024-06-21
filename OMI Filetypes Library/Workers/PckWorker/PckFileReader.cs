@@ -69,8 +69,8 @@ namespace OMI.Workers.Pck
 
                 IList<string> propertyList = ReadLookUpTable(reader, out bool hasVersionStr);
                 pckFile = new PckFile(pckType, hasVersionStr);
-                ReadFileEntries(reader);
-                ReadFileContents(pckFile, propertyList, reader);
+                ReadAssetEntries(reader);
+                ReadAssetContents(pckFile, propertyList, reader);
             }
             return pckFile;
         }
@@ -93,7 +93,7 @@ namespace OMI.Workers.Pck
             return propertyLookUp;
         }
 
-        private void ReadFileEntries(EndiannessAwareBinaryReader reader)
+        private void ReadAssetEntries(EndiannessAwareBinaryReader reader)
         {
             int fileCount = reader.ReadInt32();
             _files = new List<PckAsset>(fileCount);
@@ -107,7 +107,7 @@ namespace OMI.Workers.Pck
             }
         }
 
-        private void ReadFileContents(PckFile pckFile, IList<string> propertyList, EndiannessAwareBinaryReader reader)
+        private void ReadAssetContents(PckFile pckFile, IList<string> propertyList, EndiannessAwareBinaryReader reader)
         {
             foreach (var file in _files)
             {
@@ -119,7 +119,7 @@ namespace OMI.Workers.Pck
                     file.Properties.Add(key, value);
                 }
                 reader.Read(file.Data, 0, file.Size);
-                pckFile.AddFile(file);
+                pckFile.AddAsset(file);
             };
             _files.Clear();
         }

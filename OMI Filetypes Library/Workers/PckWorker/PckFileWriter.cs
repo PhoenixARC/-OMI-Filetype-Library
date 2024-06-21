@@ -47,26 +47,26 @@ namespace OMI.Workers.Pck
                     writer.Write(1);
                 }
 
-                writer.Write(_pckFile.FileCount);
-                var files = _pckFile.GetFiles();
-                foreach (var file in files)
+                writer.Write(_pckFile.AssetCount);
+                var assets = _pckFile.GetAssets();
+                foreach (var asset in assets)
                 {
-                    writer.Write(file.Size);
-                    writer.Write((int)file.Type);
-                    WriteString(writer, file.Filename);
+                    writer.Write(asset.Size);
+                    writer.Write((int)asset.Type);
+                    WriteString(writer, asset.Filename);
                 }
 
-                foreach (var file in files)
+                foreach (var asset in assets)
                 {
-                    writer.Write(file.Properties.Count);
-                    foreach (var property in file.Properties)
+                    writer.Write(asset.Properties.Count);
+                    foreach (var property in asset.Properties)
                     {
                         if (!_propertyList.Contains(property.Key))
                             throw new KeyNotFoundException("Property not found in Look Up Table: " + property.Key);
                         writer.Write(_propertyList.IndexOf(property.Key));
                         WriteString(writer, property.Value);
                     }
-                    writer.Write(file.Data);
+                    writer.Write(asset.Data);
                 }
             }
         }

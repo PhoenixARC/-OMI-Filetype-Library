@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace OMI.Formats.Pck
 {
-    public class FileCollection : IList<PckAsset>
+    public class PckAssetCollection : IList<PckAsset>
     {
         private OrderedDictionary _files = new OrderedDictionary();
         private ArrayList duplicates = new ArrayList();
@@ -51,15 +51,15 @@ namespace OMI.Formats.Pck
             {
                 if (this[value.Filename, value.Type].Equals(value))
                 {
-                    Debug.WriteLine($"Duplicate file: '{value.Filename}'", category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    Debug.WriteLine($"Merging '{value.Filename}' Properties", category: $"{nameof(FileCollection)}.{nameof(Add)}");
-                    PckAsset first = GetFile(value.Filename, value.Type);
+                    Debug.WriteLine($"Duplicate asset: '{value.Filename}'", category: $"{nameof(PckAssetCollection)}.{nameof(Add)}");
+                    Debug.WriteLine($"Merging '{value.Filename}' Properties", category: $"{nameof(PckAssetCollection)}.{nameof(Add)}");
+                    PckAsset first = GetAsset(value.Filename, value.Type);
                     first.Properties.Merge(value.Properties);
                     return;
                 }
                 var markedKey = key + value.GetHashCode().ToString();
                 Debug.WriteLine($"'{key}' is already present! Adding it as '{markedKey}'",
-                    category: $"{nameof(FileCollection)}.{nameof(Add)}");
+                    category: $"{nameof(PckAssetCollection)}.{nameof(Add)}");
                 duplicates.Add(markedKey);
 
                 _files.Add(markedKey, value);
@@ -68,7 +68,7 @@ namespace OMI.Formats.Pck
             _files.Add(key, value);
         }
 
-        internal PckAsset GetFile(string filename, PckAssetType assetType)
+        internal PckAsset GetAsset(string filename, PckAssetType assetType)
         {
             return _files[GetStorageKey(filename, assetType)] as PckAsset;
         }
@@ -192,7 +192,7 @@ namespace OMI.Formats.Pck
         {
             if (Contains(key, assetType))
             {
-                value = GetFile(key, assetType);
+                value = GetAsset(key, assetType);
                 return true;
             }
             value = null;
