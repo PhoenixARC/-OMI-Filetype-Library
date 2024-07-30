@@ -25,7 +25,7 @@ namespace OMI.Workers.Model
 
         public void WriteToFile(string filename)
         {
-            using (var fs = File.OpenWrite(filename))
+            using (FileStream fs = File.OpenWrite(filename))
             {
                 WriteToStream(fs);
             }
@@ -36,9 +36,9 @@ namespace OMI.Workers.Model
             using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
             {
                 writer.Write(fileVersion);
-                writer.Write(container.Models.Count);
+                writer.Write(container.ModelCount);
 
-                foreach (Formats.Model.Model model in container.Models.Values)
+                foreach (Formats.Model.Model model in container)
                 {
                     WriteString(writer, model.Name);
                     writer.Write(model.TextureSize.Width);
@@ -52,30 +52,30 @@ namespace OMI.Workers.Model
                             // in case part doesn't have parent
                             WriteString(writer, part.ParentName ?? string.Empty);
                         }
-                        writer.Write(part.TranslationX);
-                        writer.Write(part.TranslationY);
-                        writer.Write(part.TranslationZ);
-                        writer.Write(part.UnknownFloat);
-                        writer.Write(part.TextureOffsetX);
-                        writer.Write(part.TextureOffsetY);
+                        writer.Write(part.Translation.X);
+                        writer.Write(part.Translation.Y);
+                        writer.Write(part.Translation.Z);
+                        writer.Write(part.Rotation.X);
+                        writer.Write(part.Rotation.Y);
+                        writer.Write(part.Rotation.Z);
 
                         if (fileVersion > 0)
                         {
-                            writer.Write(part.RotationX);
-                            writer.Write(part.RotationY);
-                            writer.Write(part.RotationZ);
+                            writer.Write(part.AdditionalRotation.X);
+                            writer.Write(part.AdditionalRotation.Y);
+                            writer.Write(part.AdditionalRotation.Z);
                         }
                         writer.Write(part.Boxes.Count);
-                        foreach (var box in part.Boxes)
+                        foreach (ModelBox box in part.Boxes)
                         {
-                            writer.Write(box.PositionX);
-                            writer.Write(box.PositionY);
-                            writer.Write(box.PositionZ);
-                            writer.Write(box.Length);
-                            writer.Write(box.Height);
-                            writer.Write(box.Width);
-                            writer.Write(box.UvX);
-                            writer.Write(box.UvY);
+                            writer.Write(box.Position.X);
+                            writer.Write(box.Position.Y);
+                            writer.Write(box.Position.Z);
+                            writer.Write(box.Size.X);
+                            writer.Write(box.Size.Y);
+                            writer.Write(box.Size.Z);
+                            writer.Write(box.Uv.X);
+                            writer.Write(box.Uv.Y);
                             writer.Write(box.Scale);
                             writer.Write(box.Mirror);
 

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 /*
@@ -10,19 +12,48 @@ using System.Threading.Tasks;
 */
 namespace OMI.Formats.Model
 {
-    public class ModelContainer
+    public class ModelContainer : ICollection<Model>
     {
         public int Version;
 
-        public Dictionary<string, Model> Models = new Dictionary<string, Model>();
+        private Dictionary<string, Model> Models { get; } = new Dictionary<string, Model>();
+
+        public int ModelCount => Models.Count;
+
+        public int Count => Models.Count;
+
+        public bool IsReadOnly => false;
 
         /// <exception cref="ModelNotFoundException"></exception>
-        Model GetModelByName(string name)
+        public Model GetModelByName(string name)
         {
             if (!Models.ContainsKey(name))
                 throw new ModelNotFoundException(nameof(name));
             return Models[name];
         }
+
+        public IEnumerable<string> GetModelNames() => Models.Keys;
+        
+        public IEnumerable<Model> GetModels() => Models.Values;
+
+        public void Add(Model item) => Models.Add(item.Name, item);
+
+        public void Clear() => Models.Clear();
+
+        public bool ContainsModel(string name) => Models.ContainsKey(name);
+
+        public bool Contains(Model item) => ContainsModel(item.Name);
+
+        public void CopyTo(Model[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(Model item) => Models.Remove(item.Name);
+
+        public IEnumerator<Model> GetEnumerator() => Models.Values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     public class Model
@@ -36,28 +67,17 @@ namespace OMI.Formats.Model
     {
         public string Name;
         public string ParentName;
-        public float UnknownFloat;
-        public float TranslationX;
-        public float TranslationY;
-        public float TranslationZ;
-        public float TextureOffsetX;
-        public float TextureOffsetY;
-        public float RotationX;
-        public float RotationY;
-        public float RotationZ;
+        public Vector3 Translation;
+        public Vector3 Rotation;
+        public Vector3 AdditionalRotation;
         public List<ModelBox> Boxes = new List<ModelBox>();
     }
 
     public class ModelBox
     {
-        public float PositionX;
-        public float PositionY;
-        public float PositionZ;
-        public int Length;
-        public int Width;
-        public int Height;
-        public float UvX;
-        public float UvY;
+        public Vector3 Position;
+        public Vector3 Size;
+        public Vector2 Uv;
         public float Scale;
         public bool Mirror;
     }
