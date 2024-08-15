@@ -58,9 +58,15 @@ namespace OMI.Formats.Model
 
     public class Model
     {
-        public string Name;
-        public Size TextureSize;
-        public Dictionary<string, ModelPart> Parts = new Dictionary<string, ModelPart>();
+        public string Name { get; }
+        public Size TextureSize { get; }
+        public Dictionary<string, ModelPart> Parts { get; } = new Dictionary<string, ModelPart>();
+
+        public Model(string name, Size textureSize)
+        {
+            Name = name;
+            TextureSize = textureSize;
+        }
     }
 
     public class ModelPart
@@ -70,7 +76,9 @@ namespace OMI.Formats.Model
         public Vector3 Translation;
         public Vector3 Rotation;
         public Vector3 AdditionalRotation;
-        public List<ModelBox> Boxes = new List<ModelBox>();
+        public List<ModelBox> Boxes { get; } = new List<ModelBox>();
+
+        public void AddBox(ModelBox modelBox) => Boxes.Add(modelBox);
     }
 
     public class ModelBox

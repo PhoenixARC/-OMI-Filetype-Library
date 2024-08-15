@@ -46,11 +46,7 @@ namespace OMI.Workers.Model
                     string modelName = ReadString(reader);
                     int textureWidth = reader.ReadInt32();
                     int textureHeight = reader.ReadInt32();
-                    Formats.Model.Model model = new Formats.Model.Model
-                    {
-                        Name = modelName,
-                        TextureSize = new System.Drawing.Size(textureWidth, textureHeight)
-                    };
+                    Formats.Model.Model model = new Formats.Model.Model(modelName, new System.Drawing.Size(textureWidth, textureHeight));
                     int numOfParts = reader.ReadInt32();
 
                     for (int j = 0; j < numOfParts; j++)
