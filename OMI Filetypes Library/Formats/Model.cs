@@ -1,18 +1,16 @@
 ﻿using System;
+using System.Drawing;
+using System.Numerics;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+
 /*
  * all known Model/Material information is the direct product of MattNL's work! check em out! 
  * https://github.com/MattN-L
 */
 namespace OMI.Formats.Model
 {
-    public class ModelContainer : ICollection<Model>
+    public sealed class ModelContainer : ICollection<Model>
     {
         public int Version;
 
@@ -56,37 +54,69 @@ namespace OMI.Formats.Model
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    public class Model
+    public sealed class Model
     {
         public string Name { get; }
         public Size TextureSize { get; }
-        public Dictionary<string, ModelPart> Parts { get; } = new Dictionary<string, ModelPart>();
+        public int PartCount => _parts.Count;
+
+        private Dictionary<string, ModelPart> _parts;
 
         public Model(string name, Size textureSize)
         {
             Name = name;
             TextureSize = textureSize;
+            _parts = new Dictionary<string, ModelPart>();
         }
+
+        public void AddPart(ModelPart part)
+        {
+            _parts.Add(part.Name, part);
+        }
+
+        public IEnumerable<ModelPart> GetParts() => _parts.Values;
     }
 
-    public class ModelPart
+    public sealed class ModelPart
     {
-        public string Name;
-        public string ParentName;
-        public Vector3 Translation;
-        public Vector3 Rotation;
-        public Vector3 AdditionalRotation;
-        public List<ModelBox> Boxes { get; } = new List<ModelBox>();
+        public string Name { get; }
+        public string ParentName { get; }
+        public Vector3 Translation { get; }
+        public Vector3 Rotation { get; }
+        public Vector3 AdditionalRotation { get; }
+        public int BoxCount => _boxes.Count;
 
-        public void AddBox(ModelBox modelBox) => Boxes.Add(modelBox);
+        private List<ModelBox> _boxes = new List<ModelBox>();
+        public ModelPart(string name, string parentName, Vector3 translation, Vector3 rotation, Vector3 additionalRotation)
+        {
+            Name = name;
+            ParentName = parentName;
+            Translation = translation;
+            Rotation = rotation;
+            AdditionalRotation = additionalRotation;
+        }
+
+        public void AddBox(ModelBox modelBox) => _boxes.Add(modelBox);
+        public void AddBoxes(IEnumerable<ModelBox> modelBoxes) => _boxes.AddRange(modelBoxes);
+
+        public IEnumerable<ModelBox> GetBoxes() => _boxes;
     }
 
-    public class ModelBox
+    public sealed class ModelBox
     {
-        public Vector3 Position;
-        public Vector3 Size;
-        public Vector2 Uv;
-        public float Scale;
-        public bool Mirror;
+        public Vector3 Position { get; }
+        public Vector3 Size { get; }
+        public Vector2 Uv { get; }
+        public float Inflate { get; }
+        public bool Mirror { get; }
+
+        public ModelBox(Vector3 position, Vector3 size, Vector2 uv, float inflate, bool mirror)
+        {
+            Position = position;
+            Size = size;
+            Uv = uv;
+            Inflate = inflate;
+            Mirror = mirror;
+        }
     }
 }

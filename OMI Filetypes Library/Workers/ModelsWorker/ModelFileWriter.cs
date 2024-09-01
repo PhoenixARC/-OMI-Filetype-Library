@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using OMI.Formats.Model;
 using OMI.Workers;
+using System.Numerics;
 /*
 * all known Model/Material information is the direct product of May/MattNL's work! check em out! 
 * https://github.com/MattN-L
@@ -12,6 +13,22 @@ using OMI.Workers;
 
 namespace OMI.Workers.Model
 {
+    static class BinaryWriterExtensions
+    {
+        public static void Write(this BinaryWriter writer, Vector2 vector2)
+        {
+            writer.Write(vector2.X);
+            writer.Write(vector2.Y);
+        }
+
+        public static void Write(this BinaryWriter writer, Vector3 vector3)
+        {
+            writer.Write(vector3.X);
+            writer.Write(vector3.Y);
+            writer.Write(vector3.Z);
+        }
+    }
+
     public class ModelFileWriter : IDataFormatWriter
     {
         private int fileVersion;
@@ -33,7 +50,7 @@ namespace OMI.Workers.Model
 
         public void WriteToStream(Stream stream)
         {
-            using (var writer = new EndiannessAwareBinaryWriter(stream, Endianness.BigEndian))
+            using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.ASCII, Endianness.BigEndian))
             {
                 writer.Write(fileVersion);
                 writer.Write(container.ModelCount);
@@ -43,8 +60,8 @@ namespace OMI.Workers.Model
                     WriteString(writer, model.Name);
                     writer.Write(model.TextureSize.Width);
                     writer.Write(model.TextureSize.Height);
-                    writer.Write(model.Parts.Count);
-                    foreach (ModelPart part in model.Parts.Values)
+                    writer.Write(model.PartCount);
+                    foreach (ModelPart part in model.GetParts())
                     {
                         WriteString(writer, part.Name);
                         if (fileVersion > 1)
@@ -52,31 +69,20 @@ namespace OMI.Workers.Model
                             // in case part doesn't have parent
                             WriteString(writer, part.ParentName ?? string.Empty);
                         }
-                        writer.Write(part.Translation.X);
-                        writer.Write(part.Translation.Y);
-                        writer.Write(part.Translation.Z);
-                        writer.Write(part.Rotation.X);
-                        writer.Write(part.Rotation.Y);
-                        writer.Write(part.Rotation.Z);
+                        writer.Write(part.Translation);
+                        writer.Write(part.Rotation);
 
                         if (fileVersion > 0)
                         {
-                            writer.Write(part.AdditionalRotation.X);
-                            writer.Write(part.AdditionalRotation.Y);
-                            writer.Write(part.AdditionalRotation.Z);
+                            writer.Write(part.AdditionalRotation);
                         }
-                        writer.Write(part.Boxes.Count);
-                        foreach (ModelBox box in part.Boxes)
+                        writer.Write(part.BoxCount);
+                        foreach (ModelBox box in part.GetBoxes())
                         {
-                            writer.Write(box.Position.X);
-                            writer.Write(box.Position.Y);
-                            writer.Write(box.Position.Z);
-                            writer.Write(box.Size.X);
-                            writer.Write(box.Size.Y);
-                            writer.Write(box.Size.Z);
-                            writer.Write(box.Uv.X);
-                            writer.Write(box.Uv.Y);
-                            writer.Write(box.Scale);
+                            writer.Write(box.Position);
+                            writer.Write(box.Size);
+                            writer.Write(box.Uv);
+                            writer.Write(box.Inflate);
                             writer.Write(box.Mirror);
 
                         }
