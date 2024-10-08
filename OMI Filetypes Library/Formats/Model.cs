@@ -74,6 +74,10 @@ namespace OMI.Formats.Model
             _parts.Add(part.Name, part);
         }
 
+        public bool ContainsPart(string partName) => _parts.ContainsKey(partName);
+        
+        public bool TryGetPart(string partName, out ModelPart modelPart) => _parts.TryGetValue(partName, out modelPart);
+
         public IEnumerable<ModelPart> GetParts() => _parts.Values;
     }
 
