@@ -53,7 +53,7 @@ namespace OMI.Workers.FUI
             FourjUserInterface UIContainer = new FourjUserInterface();
             using (var reader = new EndiannessAwareBinaryReader(stream, Encoding.ASCII, Endianness.LittleEndian))
             {
-                UIContainer.Header.Signature = reader.ReadInt64(Endianness.BigEndian);
+                UIContainer.Header.Signature = reader.ReadInt64(Endianness.LittleEndian);
                 UIContainer.Header.ContentSize = reader.ReadInt32();
                 UIContainer.Header.SwfFileName = reader.ReadString(0x40);
 
@@ -122,6 +122,7 @@ namespace OMI.Workers.FUI
             tline.Size = reader.ReadInt32();
             tline.ZlibDataOffset = reader.ReadInt32();
             //tline.BindHandle = reader.ReadInt32();
+            reader.ReadInt32();
             return tline;
         }
 
@@ -153,7 +154,7 @@ namespace OMI.Workers.FUI
             edittext.Rectangle.Max.Y = reader.ReadSingle();
             edittext.FontId = reader.ReadInt32();
             edittext.FontScale = reader.ReadSingle();
-            edittext.Color = GetColorFromRGBA(reader.ReadInt32());
+            edittext.Color = (reader.ReadUInt32());
             edittext.Alignment = reader.ReadInt32();
             edittext.Unknown3 = reader.ReadInt32();
             edittext.Unknown4 = reader.ReadInt32();
@@ -164,10 +165,6 @@ namespace OMI.Workers.FUI
             return edittext;
         }
 
-        private static System.Drawing.Color GetColorFromRGBA(int rgba)
-        {
-            return System.Drawing.Color.FromArgb(rgba & 0xff | rgba >> 8 & 0xffffff);
-        }
 
         private FuiReference ReadReference(EndiannessAwareBinaryReader reader)
         {
@@ -206,7 +203,7 @@ namespace OMI.Workers.FUI
             timelineEvent.ColorTransform.GreenAddTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.BlueAddTerm = reader.ReadSingle();
             timelineEvent.ColorTransform.AlphaAddTerm = reader.ReadSingle();
-            timelineEvent.Color = GetColorFromRGBA(reader.ReadInt32());
+            timelineEvent.Color = (reader.ReadUInt32());
             return timelineEvent;
         }
 
@@ -231,7 +228,7 @@ namespace OMI.Workers.FUI
         {
             FuiShapeComponent shapeComponent = new FuiShapeComponent();
             shapeComponent.FillInfo.Type = (FuiFillStyle.FillType)reader.ReadInt32();
-            shapeComponent.FillInfo.Color = GetColorFromRGBA(reader.ReadInt32());
+            shapeComponent.FillInfo.Color = (reader.ReadUInt32());
             shapeComponent.FillInfo.BitmapIndex = reader.ReadInt32();
             shapeComponent.FillInfo.Matrix.Scale.Width = reader.ReadSingle();
             shapeComponent.FillInfo.Matrix.Scale.Height = reader.ReadSingle();
@@ -250,10 +247,10 @@ namespace OMI.Workers.FUI
             shape.Unknown = reader.ReadInt32();
             shape.ShapeComponentIndex = reader.ReadInt32();
             shape.ShapeComponentCount = reader.ReadInt32();
-            shape.Rectangle.Min.X = reader.ReadInt32();
-            shape.Rectangle.Max.X = reader.ReadInt32();
-            shape.Rectangle.Min.Y = reader.ReadInt32();
-            shape.Rectangle.Max.Y = reader.ReadInt32();
+            shape.Rectangle.Min.X = reader.ReadSingle();
+            shape.Rectangle.Max.X = reader.ReadSingle();
+            shape.Rectangle.Min.Y = reader.ReadSingle();
+            shape.Rectangle.Max.Y = reader.ReadSingle();
             return shape;
         }
 
@@ -265,10 +262,10 @@ namespace OMI.Workers.FUI
             timeline.FrameCount = reader.ReadInt16();
             timeline.ActionIndex = reader.ReadInt16();
             timeline.ActionCount = reader.ReadInt16();
-            timeline.Rectangle.Min.X = reader.ReadInt32();
-            timeline.Rectangle.Max.X = reader.ReadInt32();
-            timeline.Rectangle.Min.Y = reader.ReadInt32();
-            timeline.Rectangle.Max.Y = reader.ReadInt32();
+            timeline.Rectangle.Min.X = reader.ReadSingle();
+            timeline.Rectangle.Max.X = reader.ReadSingle();
+            timeline.Rectangle.Min.Y = reader.ReadSingle();
+            timeline.Rectangle.Max.Y = reader.ReadSingle();
             return timeline;
         }
 

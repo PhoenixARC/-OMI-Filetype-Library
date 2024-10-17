@@ -62,7 +62,7 @@ namespace OMI.Workers.FUI
                 writer.Write(_UIContainer.Edittexts.Count);
                 writer.Write(_UIContainer.Symbols.Count);
                 writer.Write(_UIContainer.Bitmaps.Count);
-                writer.Write(0);
+                writer.Write(0); // imagesSize
                 writer.Write(_UIContainer.FontNames.Count);
                 writer.Write(_UIContainer.ImportAssets.Count);
                 writer.Write(_UIContainer.Header.FrameSize.Min.X);
@@ -103,7 +103,7 @@ namespace OMI.Workers.FUI
                 foreach (FuiShapeComponent shapeComponent in _UIContainer.ShapeComponents)
                 {
                     writer.Write((int)shapeComponent.FillInfo.Type);
-                    writer.Write(GetRGBAFromColor(shapeComponent.FillInfo.Color));
+                    writer.Write(shapeComponent.FillInfo.Color);
                     writer.Write(shapeComponent.FillInfo.BitmapIndex);
                     writer.Write(shapeComponent.FillInfo.Matrix.Scale.Width);
                     writer.Write(shapeComponent.FillInfo.Matrix.Scale.Height);
@@ -147,7 +147,7 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.ColorTransform.GreenAddTerm);
                     writer.Write(timelineEvent.ColorTransform.BlueAddTerm);
                     writer.Write(timelineEvent.ColorTransform.AlphaAddTerm);
-                    writer.Write(GetRGBAFromColor(timelineEvent.Color));
+                    writer.Write(timelineEvent.Color); // Gives Incorrect Colour?
                 }
                 foreach (var eventName in _UIContainer.TimelineEventNames)
                 {
@@ -168,7 +168,7 @@ namespace OMI.Workers.FUI
                     writer.Write(edittext.Rectangle.Max.Y);
                     writer.Write(edittext.FontId);
                     writer.Write(edittext.FontScale);
-                    writer.Write(GetRGBAFromColor(edittext.Color));
+                    writer.Write(edittext.Color);
                     writer.Write(edittext.Alignment);
                     writer.Write(edittext.Unknown3);
                     writer.Write(edittext.Unknown4);

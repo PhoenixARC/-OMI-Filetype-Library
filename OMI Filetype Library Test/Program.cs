@@ -43,6 +43,8 @@ namespace OMI_Filetype_Library_Test
                 switch (Path.GetExtension(args[1]))
                 {
                     case ".fui":
+                        FourjUserInterface fuiFile = new FourjUIReader().FromFile(args[1]);
+                        new FourjUIWriter(fuiFile).WriteToFile(args[1] + ".fui");
                         break;
                     case ".col":
                         break;
@@ -98,7 +100,7 @@ namespace OMI_Filetype_Library_Test
                 case ".pck":
                     return new PckFileWriter(_pckFile, _endianness);
                 case ".bin" when Path.GetFileNameWithoutExtension(filename).StartsWith("models"):
-                    return new ModelFileWriter(modelContainer);
+                    return new ModelFileWriter(modelContainer, 0);
                 case ".bin" when Path.GetFileNameWithoutExtension(filename).StartsWith("materials"):
                     return new MaterialFileWriter(materialContainer);
                 default:

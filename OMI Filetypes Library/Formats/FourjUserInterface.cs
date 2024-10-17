@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -116,7 +117,7 @@ namespace OMI.Formats.FUI
             public short NameIndex;
             public FuiMatrix Matrix;
             public FuiColorTransform ColorTransform = new FuiColorTransform();
-            public System.Drawing.Color Color;
+            public UInt32 Color;
         }
 
         public class FuiReference
@@ -135,7 +136,7 @@ namespace OMI.Formats.FUI
             public FuiRect Rectangle = new FuiRect();
             public int FontId;
             public float FontScale;
-            public System.Drawing.Color Color;
+            public UInt32 Color;
             public int Alignment; // 0 - 3
             public int Unknown3;
             public int Unknown4;
@@ -239,10 +240,11 @@ namespace OMI.Formats.FUI
             }
 
             public FillType Type;
-            public System.Drawing.Color Color;
+            public UInt32 Color;
             public int BitmapIndex;
             public FuiMatrix Matrix;
         }
+
         
         internal enum fuiObject_eFuiObjectType
         {
