@@ -156,6 +156,8 @@ namespace OMI.Formats.FUI
             /// Max size: 0x40
             /// </summary>
             public string Name;
+
+            public byte[] UnknownData;
         }
         
         public class FuiSymbol

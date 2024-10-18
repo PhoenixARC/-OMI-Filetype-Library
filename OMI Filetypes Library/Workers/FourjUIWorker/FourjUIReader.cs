@@ -140,7 +140,7 @@ namespace OMI.Workers.FUI
             FuiFontName fontName = new FuiFontName();
             fontName.ID = reader.ReadInt32();
             fontName.Name = reader.ReadString(0x40);
-            reader.ReadBytes(0xc0); // unknown values
+            fontName.UnknownData = reader.ReadBytes(0xc0); // unknown values
             return fontName;
         }
 

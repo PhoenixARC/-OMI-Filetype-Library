@@ -17,9 +17,11 @@
 **/
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using OMI.Formats.FUI;
 using OMI.Formats.FUI.Components;
+using OMI.Workers.Model;
 /*
 * all known FourJUserInterface information is the direct product of Miku-666(NessieHax)'s work! check em out! 
 * https://github.com/NessieHax
@@ -62,7 +64,15 @@ namespace OMI.Workers.FUI
                 writer.Write(_UIContainer.Edittexts.Count);
                 writer.Write(_UIContainer.Symbols.Count);
                 writer.Write(_UIContainer.Bitmaps.Count);
-                writer.Write(0); // imagesSize
+
+                int ImagesSize = 0;
+                foreach (byte[] arr in _UIContainer.ImagesData)
+                {
+                    ImagesSize += arr.Length;
+                }
+
+
+                writer.Write(ImagesSize);
                 writer.Write(_UIContainer.FontNames.Count);
                 writer.Write(_UIContainer.ImportAssets.Count);
                 writer.Write(_UIContainer.Header.FrameSize.Min.X);
@@ -181,7 +191,7 @@ namespace OMI.Workers.FUI
                 {
                     writer.Write(fontName.ID);
                     writer.WriteString(fontName.Name, 0x40);
-                    writer.Write(new byte[0xC0]);
+                    writer.Write(fontName.UnknownData);
                 }
                 foreach (FuiSymbol symbol in _UIContainer.Symbols)
                 {
@@ -193,16 +203,34 @@ namespace OMI.Workers.FUI
                 {
                     writer.WriteString(importAssetName, 0x40);
                 }
+
+                int i = 0;
+                long ImagesSizeNew = 0;
+
                 foreach (FuiBitmap bitmap in _UIContainer.Bitmaps)
                 {
                     writer.Write(bitmap.SymbolIndex);
                     writer.Write((int)bitmap.ImageFormat);
+
+                    using (var ms = new MemoryStream(_UIContainer.ImagesData[i]))
+                    {
+                        // I'd like to avoid creating a new image for each bitmap, but I don't see how we'd get the sizes otherwise
+                        Image img = Image.FromStream(ms);
+                        bitmap.ImageSize.Width = img.Width;
+                        bitmap.ImageSize.Height = img.Height;
+                        img.Dispose();
+                        ms.Close();
+                        ms.Dispose();
+                    }
+
                     writer.Write(bitmap.ImageSize.Width);
                     writer.Write(bitmap.ImageSize.Height);
-                    writer.Write(bitmap.Offset);
-                    writer.Write(bitmap.Size);
-                    writer.Write(bitmap.ZlibDataOffset);
+                    writer.Write((int)ImagesSizeNew);
+                    writer.Write(_UIContainer.ImagesData[i].Length);
+                    writer.Write(bitmap.ZlibDataOffset); // will need to calculate this in the future
                     writer.Write(bitmap.BindHandle);
+                    ImagesSizeNew += _UIContainer.ImagesData[i].Length;
+                    i++;
                 }
                 foreach (var imgData in _UIContainer.ImagesData)
                 {
