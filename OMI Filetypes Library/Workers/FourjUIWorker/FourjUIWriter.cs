@@ -46,6 +46,8 @@ namespace OMI.Workers.FUI
 
         public void WriteToStream(Stream stream)
         {
+            _UIContainer.ImagesData.Clear();
+            ImageConverter converter = new ImageConverter();
             using (var writer = new EndiannessAwareBinaryWriter(stream, Encoding.ASCII, leaveOpen: true, Endianness.LittleEndian))
             {
                 writer.Write(_UIContainer.Header.Signature);
@@ -66,9 +68,9 @@ namespace OMI.Workers.FUI
                 writer.Write(_UIContainer.Bitmaps.Count);
 
                 int ImagesSize = 0;
-                foreach (byte[] arr in _UIContainer.ImagesData)
+                foreach (FuiBitmap img in _UIContainer.Bitmaps)
                 {
-                    ImagesSize += arr.Length;
+                    ImagesSize += ((byte[])converter.ConvertTo(img.image, typeof(byte[]))).Length;
                 }
 
 
@@ -204,7 +206,6 @@ namespace OMI.Workers.FUI
                     writer.WriteString(importAssetName, 0x40);
                 }
 
-                int i = 0;
                 long ImagesSizeNew = 0;
 
                 foreach (FuiBitmap bitmap in _UIContainer.Bitmaps)
@@ -212,25 +213,20 @@ namespace OMI.Workers.FUI
                     writer.Write(bitmap.SymbolIndex);
                     writer.Write((int)bitmap.ImageFormat);
 
-                    using (var ms = new MemoryStream(_UIContainer.ImagesData[i]))
-                    {
-                        // I'd like to avoid creating a new image for each bitmap, but I don't see how we'd get the sizes otherwise
-                        Image img = Image.FromStream(ms);
-                        bitmap.ImageSize.Width = img.Width;
-                        bitmap.ImageSize.Height = img.Height;
-                        img.Dispose();
-                        ms.Close();
-                        ms.Dispose();
-                    }
-
-                    writer.Write(bitmap.ImageSize.Width);
-                    writer.Write(bitmap.ImageSize.Height);
+                    writer.Write(bitmap.image.Width);
+                    writer.Write(bitmap.image.Height);
                     writer.Write((int)ImagesSizeNew);
-                    writer.Write(_UIContainer.ImagesData[i].Length);
+                    writer.Write(((byte[])converter.ConvertTo(bitmap.image, typeof(byte[]))).Length);
                     writer.Write(bitmap.ZlibDataOffset); // will need to calculate this in the future
                     writer.Write(bitmap.BindHandle);
-                    ImagesSizeNew += _UIContainer.ImagesData[i].Length;
-                    i++;
+                    ImagesSizeNew += ((byte[])converter.ConvertTo(bitmap.image, typeof(byte[]))).Length;
+
+                    if(bitmap.ImageFormat == FuiBitmap.FuiImageFormat.PNG_WITH_ALPHA_DATA || bitmap.ImageFormat == FuiBitmap.FuiImageFormat.JPEG_NO_ALPHA_DATA)
+                    {
+                        Bitmap bmp = new Bitmap(bitmap.image);
+                        bitmap.ReverseRGB(bmp);
+                        _UIContainer.ImagesData.Add(((byte[])converter.ConvertTo(bmp, typeof(byte[]))));
+                    }
                 }
                 foreach (var imgData in _UIContainer.ImagesData)
                 {

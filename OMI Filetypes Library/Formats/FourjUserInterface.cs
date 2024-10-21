@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -194,6 +196,22 @@ namespace OMI.Formats.FUI
             /// Preserved
             /// </summary>
             public readonly int BindHandle = 0;
+
+            public byte[] ImageData;
+
+            public Image image;
+
+            public void ReverseRGB(Bitmap bmp)
+            {
+                for (int y = 0; y < bmp.Height; y++)
+                {
+                    for (int x = 0; x < bmp.Width; x++)
+                    {
+                        System.Drawing.Color col = bmp.GetPixel(x, y);
+                        bmp.SetPixel(x, y, System.Drawing.Color.FromArgb(col.A, col.B, col.G, col.R));
+                    }
+                }
+            }
         }
 
         public struct FuiRect

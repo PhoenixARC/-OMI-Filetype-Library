@@ -104,7 +104,19 @@ namespace OMI.Workers.FUI
                         byte[] buffer = new byte[bitmap.Size];
                         ms.Read(buffer, 0, bitmap.Size);
                         ms.Seek(origin, SeekOrigin.Begin);
-                        UIContainer.ImagesData.Add(buffer);
+
+                        Bitmap bmp;
+                        using (var ms2 = new MemoryStream(buffer))
+                        {
+                            bmp = new Bitmap(ms2);
+                            if (bitmap.ImageFormat == FuiBitmap.FuiImageFormat.PNG_WITH_ALPHA_DATA || bitmap.ImageFormat == FuiBitmap.FuiImageFormat.JPEG_NO_ALPHA_DATA)
+                            {
+                                bitmap.ReverseRGB(bmp);
+                                buffer = ((byte[])new ImageConverter().ConvertTo(bitmap.image, typeof(byte[])));
+                            }
+                            bitmap.image = bmp;
+                        }
+                        
                     }
                 }
             }
