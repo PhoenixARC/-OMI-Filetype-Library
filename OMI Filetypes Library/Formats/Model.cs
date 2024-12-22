@@ -47,6 +47,8 @@ namespace OMI.Formats.Model
             throw new NotImplementedException();
         }
 
+        public void SetModel(Model model) => Models[model.Name] = model;
+
         public bool Remove(Model item) => Models.Remove(item.Name);
 
         public IEnumerator<Model> GetEnumerator() => Models.Values.GetEnumerator();
