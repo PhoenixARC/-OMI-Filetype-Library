@@ -27,6 +27,13 @@ namespace OMI.Workers.Model
             writer.Write(vector3.Y);
             writer.Write(vector3.Z);
         }
+
+        public static void WriteVector3I(this BinaryWriter writer, Vector3 vector3)
+        {
+            writer.Write((int)vector3.X);
+            writer.Write((int)vector3.Y);
+            writer.Write((int)vector3.Z);
+        }
     }
 
     public class ModelFileWriter : IDataFormatWriter
@@ -80,7 +87,7 @@ namespace OMI.Workers.Model
                         foreach (ModelBox box in part.GetBoxes())
                         {
                             writer.Write(box.Position);
-                            writer.Write(box.Size);
+                            writer.WriteVector3I(box.Size);
                             writer.Write(box.Uv);
                             writer.Write(box.Inflate);
                             writer.Write(box.Mirror);
