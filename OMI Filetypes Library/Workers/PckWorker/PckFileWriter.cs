@@ -35,15 +35,15 @@ namespace OMI.Workers.Pck
                 writer.Write(_pckFile.type);
 
                 writer.Write(_propertyList.Count + Convert.ToInt32(_pckFile.HasVerionString));
+                if(_pckFile.HasVerionString)
+                    _propertyList.Insert(0, PckFile.XMLVersionString);
                 foreach (var entry in _propertyList)
                 {
-                    writer.Write(_propertyList.IndexOf(entry));
-                    WriteString(writer, entry);
+                        writer.Write(_propertyList.IndexOf(entry));
+                        WriteString(writer, entry);
                 };
                 if (_pckFile.HasVerionString)
                 {
-                    writer.Write(_propertyList.Count);
-                    WriteString(writer, PckFile.XMLVersionString);
                     writer.Write(1);
                 }
 
