@@ -202,9 +202,9 @@ namespace OMI.Workers.FUI
             timelineEvent.Unknown1 = reader.ReadInt16();
             timelineEvent.NameIndex = reader.ReadInt16();
             timelineEvent.Matrix.Scale.Width = reader.ReadSingle();
-            timelineEvent.Matrix.Scale.Height = reader.ReadSingle();
             timelineEvent.Matrix.RotateSkew0 = reader.ReadSingle();
             timelineEvent.Matrix.RotateSkew1 = reader.ReadSingle();
+            timelineEvent.Matrix.Scale.Height = reader.ReadSingle();
             timelineEvent.Matrix.Translation.X = reader.ReadSingle();
             timelineEvent.Matrix.Translation.Y = reader.ReadSingle();
             timelineEvent.ColorTransform.RedMultTerm = reader.ReadSingle();

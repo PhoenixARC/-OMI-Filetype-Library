@@ -146,9 +146,9 @@ namespace OMI.Workers.FUI
                     writer.Write(timelineEvent.Unknown1);
                     writer.Write(timelineEvent.NameIndex);
                     writer.Write(timelineEvent.Matrix.Scale.Width);
-                    writer.Write(timelineEvent.Matrix.Scale.Height);
                     writer.Write(timelineEvent.Matrix.RotateSkew0);
                     writer.Write(timelineEvent.Matrix.RotateSkew1);
+                    writer.Write(timelineEvent.Matrix.Scale.Height);
                     writer.Write(timelineEvent.Matrix.Translation.X);
                     writer.Write(timelineEvent.Matrix.Translation.Y);
                     writer.Write(timelineEvent.ColorTransform.RedMultTerm);
