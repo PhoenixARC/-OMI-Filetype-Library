@@ -21,7 +21,7 @@ namespace OMI.Workers.Pck
 
         public void WriteToFile(string filename)
         {
-            using (var fs = File.OpenWrite(filename))
+            using (var fs = File.Create(filename))
             {
                 WriteToStream(fs);
             }
