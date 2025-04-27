@@ -118,16 +118,18 @@ namespace OMI.Formats.Pck
         {
             if (value.Filename.Equals(newFilename))
                 return;
-            Assets[newFilename, value.Type] = value;
+            int index = Assets.IndexOf(value);
             Assets.RemoveKeyFromCollection(value);
+            Assets.Insert(index, value, newFilename, value.Type);
         }
 
         private void OnPckAssetTypeChanging(PckAsset value, PckAssetType newAssetType)
         {
             if (value.Type == newAssetType)
                 return;
-            Assets[value.Filename, newAssetType] = value;
+            int index = Assets.IndexOf(value);
             Assets.RemoveKeyFromCollection(value);
+            Assets.Insert(index, value, value.Filename, newAssetType);
         }
 
         private void OnMoveFile(PckAsset value)

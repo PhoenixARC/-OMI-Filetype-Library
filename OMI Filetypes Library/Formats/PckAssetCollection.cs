@@ -136,6 +136,11 @@ namespace OMI.Formats.Pck
             _ = item ?? throw new ArgumentNullException(nameof(item));
             _files.Insert(index, GetStorageKey(item), item);
         }
+        public void Insert(int index, PckAsset item, string Filename, PckAssetType Type)
+        {
+            _ = item ?? throw new ArgumentNullException(nameof(item));
+            _files.Insert(index, GetStorageKey(Filename, Type), item);
+        }
 
         internal bool Remove(string filename, PckAssetType assetType)
         {
